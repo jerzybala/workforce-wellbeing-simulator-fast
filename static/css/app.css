@@ -1,0 +1,170 @@
+/* ── Design tokens ─────────────────────────────────── */
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --success: #16a34a;
+    --success-light: #dcfce7;
+    --success-dark: #065f46;
+    --warning: #d97706;
+    --warning-light: #fef3c7;
+    --neutral-50: #f9fafb;
+    --neutral-100: #f3f4f6;
+    --neutral-200: #e5e7eb;
+    --neutral-500: #6b7280;
+    --neutral-700: #374151;
+    --neutral-900: #111827;
+}
+
+/* ── Outcome cards ────────────────────────────────── */
+.outcome-card-mhq {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+.outcome-card-unprod {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+.outcome-card-unprod.warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+.card-circle {
+    position: absolute;
+    top: -40px;
+    right: -30px;
+    width: 160px;
+    height: 160px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+}
+
+/* ── Mode toggle ──────────────────────────────────── */
+.mode-btn {
+    color: #6b7280;
+}
+.mode-btn.active {
+    background: white;
+    color: #111827;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ── Slider styling ───────────────────────────────── */
+.slider-group label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #374151;
+}
+.slider-group input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: #e5e7eb;
+    outline: none;
+}
+.slider-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.slider-group input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Highlighted slider (optimization recommendation) */
+.slider-group.highlighted input[type="range"] {
+    background: linear-gradient(90deg, #16a34a, #16a34a);
+}
+.slider-group.highlighted input[type="range"]::-webkit-slider-thumb {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+.slider-group.highlighted input[type="range"]::-moz-range-thumb {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+/* ── Select slider (lifestyle) ────────────────────── */
+.select-slider select {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: white;
+}
+.select-slider.highlighted select {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+/* ── Optimization result banner ───────────────────── */
+.opt-result {
+    background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+    border-left: 4px solid #10b981;
+    border-radius: 12px;
+    padding: 18px 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.opt-result.goal-mhq { border-left-color: #8b5cf6; }
+.opt-result.goal-productivity { border-left-color: #f59e0b; }
+.opt-result.goal-balanced { border-left-color: #10b981; }
+
+/* ── Status badges ────────────────────────────────── */
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+}
+.status-badge.loaded { background: #dcfce7; }
+.status-badge.loaded .badge-text { color: #16a34a; font-weight: 700; }
+.status-badge.missing { background: #fee2e2; }
+.status-badge.missing .badge-text { color: #ef4444; font-weight: 700; }
+.status-badge.neutral { background: #f3f4f6; }
+.status-badge.neutral .badge-text { color: #6b7280; font-weight: 700; }
+.status-badge.info { background: #dbeafe; }
+.status-badge.info .badge-text { color: #3b82f6; font-weight: 700; }
+
+/* ── Sidebar ──────────────────────────────────────── */
+.sidebar {
+    scrollbar-width: thin;
+}
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 2px;
+}
+
+/* ── Slider value display ─────────────────────────── */
+.slider-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #3b82f6;
+    min-width: 24px;
+    text-align: right;
+}
+.slider-group.highlighted .slider-value {
+    color: #16a34a;
+}
+
+/* ── Caption ──────────────────────────────────────── */
+.slider-caption {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: -2px;
+}

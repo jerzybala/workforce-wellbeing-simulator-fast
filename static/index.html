@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workforce Wellbeing &amp; Productivity Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar w-64 bg-white border-r border-gray-200 flex-shrink-0 h-screen sticky top-0 overflow-y-auto">
+        <div class="p-4">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Configuration</h2>
+
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Model Source</label>
+            <select id="model-source" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </select>
+
+            <hr class="my-4 border-gray-200">
+
+            <h3 class="text-sm font-bold text-gray-800 mb-2">Status</h3>
+            <div id="status-badges" class="space-y-1.5 mb-4"></div>
+
+            <hr class="my-4 border-gray-200">
+
+            <details open class="mb-2">
+                <summary class="text-sm font-semibold text-gray-700 cursor-pointer select-none">How to Use This App</summary>
+                <div id="help-text" class="text-xs text-gray-600 mt-2 space-y-2"></div>
+            </details>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 max-w-6xl">
+        <!-- Mode Toggle -->
+        <div class="flex items-center gap-4 mb-4">
+            <span class="text-lg font-bold text-gray-800">Simulation Mode</span>
+            <div class="flex bg-gray-100 rounded-lg p-1">
+                <button id="mode-team" class="mode-btn px-4 py-1.5 rounded-md text-sm font-semibold transition-all">Team</button>
+                <button id="mode-individual" class="mode-btn px-4 py-1.5 rounded-md text-sm font-semibold transition-all">Individual</button>
+            </div>
+        </div>
+
+        <!-- Team Upload (hidden in individual mode) -->
+        <div id="team-upload-section" class="mb-4 hidden">
+            <div id="team-upload-area" class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-white">
+                <p class="text-sm font-semibold text-gray-700 mb-2">Upload Team CSV</p>
+                <input type="file" id="csv-upload" accept=".csv" class="text-sm">
+                <p class="text-xs text-gray-500 mt-2">CSV with one row per team member. Max 10,000 rows.</p>
+            </div>
+            <div id="team-loaded-info" class="hidden mt-2">
+                <div class="flex items-center gap-3">
+                    <span id="team-loaded-text" class="text-sm font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-lg"></span>
+                    <button id="clear-team-btn" class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">Upload New CSV</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Outcome Banner -->
+        <div id="outcome-banner" class="mb-4">
+            <div class="mb-3">
+                <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Workforce Wellbeing &amp; Productivity Simulator</h1>
+                <p id="banner-subtitle" class="text-sm text-gray-500 mt-1">Explore how work environment and lifestyle factors impact mental health and productivity.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div id="mhq-card" class="outcome-card outcome-card-mhq rounded-2xl p-6 text-white relative overflow-hidden">
+                    <div class="card-circle"></div>
+                    <div id="mhq-label" class="text-lg font-semibold opacity-95">Mental Health Quotient (MHQ)</div>
+                    <div class="text-sm opacity-80 mt-1">Change from baseline</div>
+                    <div id="mhq-value" class="text-6xl font-extrabold leading-none mt-3 mb-1">&mdash;</div>
+                    <div id="mhq-pct" class="text-xl font-medium opacity-90"></div>
+                    <div id="mhq-range" class="text-base opacity-80 mt-1"></div>
+                </div>
+                <div id="unprod-card" class="outcome-card outcome-card-unprod rounded-2xl p-6 text-white relative overflow-hidden">
+                    <div class="card-circle"></div>
+                    <div id="unprod-label" class="text-lg font-semibold opacity-95">Unproductive Days (per month)</div>
+                    <div class="text-sm opacity-80 mt-1">Change from baseline</div>
+                    <div id="unprod-value" class="text-6xl font-extrabold leading-none mt-3 mb-1">&mdash;</div>
+                    <div id="unprod-pct" class="text-xl font-medium opacity-90"></div>
+                    <div id="unprod-range" class="text-base opacity-80 mt-1"></div>
+                </div>
+            </div>
+            <p id="banner-caption" class="text-xs text-gray-500 mt-2">Set a baseline to see how changes in work factors impact mental health and productivity.</p>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4 shadow-sm">
+            <div class="grid grid-cols-5 gap-4">
+                <div class="col-span-3">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Optimize</p>
+                    <div class="flex items-center gap-3 mb-2">
+                        <label class="text-sm font-semibold text-gray-700">Inputs to change</label>
+                        <select id="optimize-k" class="border border-gray-300 rounded-lg px-2 py-1 text-sm w-16">
+                            <option value="2" selected>2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="1">1</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="opt-mhq" class="action-btn flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" disabled>MHQ</button>
+                        <button id="opt-productivity" class="action-btn flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Productivity</button>
+                        <button id="opt-balanced" class="action-btn flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Balanced</button>
+                    </div>
+                    <p id="optimize-hint" class="text-xs text-gray-500 mt-1">Set a baseline first to enable optimization</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Actions</p>
+                    <div class="flex gap-2 mt-5">
+                        <button id="btn-reset" class="action-btn flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 hover:bg-gray-100">Reset Defaults</button>
+                        <button id="btn-baseline" class="action-btn flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 hover:bg-gray-100">Set Baseline</button>
+                    </div>
+                    <!-- Max All (team mode only) -->
+                    <button id="btn-max-all" class="hidden action-btn w-full mt-2 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 hover:bg-gray-100">Max All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optimization Result -->
+        <div id="optimization-result" class="hidden mb-4"></div>
+
+        <!-- Loading Spinner -->
+        <div id="spinner" class="hidden mb-4 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
+                <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span id="spinner-text" class="text-sm font-semibold text-blue-700">Optimizing...</span>
+            </div>
+        </div>
+
+        <!-- Sliders -->
+        <div class="mb-2">
+            <p class="text-base font-bold text-gray-900">Adjust Inputs</p>
+            <p id="sliders-caption" class="text-xs text-gray-500">Move sliders to explore different scenarios.</p>
+        </div>
+        <div class="grid grid-cols-5 gap-4">
+            <div class="col-span-3">
+                <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 border-b-2 border-gray-200 pb-2 mb-3">Work Environment <span class="font-normal text-gray-400">(1&ndash;9)</span></p>
+                    <div id="work-sliders" class="space-y-3"></div>
+                </div>
+            </div>
+            <div class="col-span-2">
+                <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 border-b-2 border-gray-200 pb-2 mb-3">Lifestyle Factors <span class="font-normal text-gray-400">(1&ndash;5)</span></p>
+                    <div id="lifestyle-sliders" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>
