@@ -110,6 +110,9 @@ function wireEvents() {
         const file = e.target.files[0];
         if (!file) return;
 
+        const filenameEl = document.getElementById('csv-filename');
+        if (filenameEl) filenameEl.textContent = file.name;
+
         showSpinner('Processing CSV...');
         const result = await uploadCsv(file, state.modelSource);
         hideSpinner();
