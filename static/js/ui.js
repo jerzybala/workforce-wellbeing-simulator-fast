@@ -105,7 +105,7 @@ export function renderOutcomeBanner() {
 
     // Labels
     el('mhq-label').textContent = isTeam ? 'Avg. Mental Health Quotient (MHQ)' : 'Mental Health Quotient (MHQ)';
-    el('unprod-label').textContent = isTeam ? 'Avg. Unproductive Days (per month)' : 'Unproductive Days (per month)';
+    el('unprod-label').textContent = isTeam ? 'Avg. Productive Days (per month)' : 'Productive Days (per month)';
 
     if (isTeam && state.teamData) {
         el('banner-subtitle').textContent = `Team of ${state.teamData.length} members — simulating uniform interventions.`;
@@ -147,8 +147,10 @@ export function renderOutcomeBanner() {
 
     el('mhq-value').textContent = `${sign(dMhq)}${fmt1(dMhq)}`;
     el('mhq-pct').textContent = `(${sign(pctMhq)}${fmt1(pctMhq)}%)`;
-    el('unprod-value').textContent = `${sign(dUnprod)}${fmt1(dUnprod)}`;
-    el('unprod-pct').textContent = `(${sign(pctUnprod)}${fmt1(pctUnprod)}%)`;
+    const dProd = -dUnprod;
+    const pctProd = -pctUnprod;
+    el('unprod-value').textContent = `${sign(dProd)}${fmt1(dProd)}`;
+    el('unprod-pct').textContent = `(${sign(pctProd)}${fmt1(pctProd)}%)`;
 
     // Unproductive days card color
     const unprodCard = el('unprod-card');
@@ -162,10 +164,10 @@ export function renderOutcomeBanner() {
         const curUnprodInd = state.teamPrediction.individual_unproductive_days;
 
         const mhqDeltas = curMhqInd.map((v, i) => v - baseMhqInd[i]);
-        const unprodDeltas = curUnprodInd.map((v, i) => v - baseUnprodInd[i]);
+        const prodDeltas = curUnprodInd.map((v, i) => -(v - baseUnprodInd[i]));
 
         el('mhq-range').textContent = `Range: ${sign(Math.min(...mhqDeltas))}${fmt1(Math.min(...mhqDeltas))} to ${sign(Math.max(...mhqDeltas))}${fmt1(Math.max(...mhqDeltas))}`;
-        el('unprod-range').textContent = `Range: ${sign(Math.min(...unprodDeltas))}${fmt1(Math.min(...unprodDeltas))} to ${sign(Math.max(...unprodDeltas))}${fmt1(Math.max(...unprodDeltas))}`;
+        el('unprod-range').textContent = `Range: ${sign(Math.min(...prodDeltas))}${fmt1(Math.min(...prodDeltas))} to ${sign(Math.max(...prodDeltas))}${fmt1(Math.max(...prodDeltas))}`;
     } else {
         el('mhq-range').textContent = '';
         el('unprod-range').textContent = '';
@@ -174,7 +176,7 @@ export function renderOutcomeBanner() {
     if (isTeam) {
         el('banner-caption').textContent = `Team of ${state.teamData.length} members. Showing average change from baseline.`;
     } else {
-        el('banner-caption').textContent = 'Showing change from your baseline. Positive = improvement for MHQ, negative = improvement for unproductive days.';
+        el('banner-caption').textContent = 'Showing change from your baseline. Positive = improvement for both MHQ and Productive Days.';
     }
 }
 
