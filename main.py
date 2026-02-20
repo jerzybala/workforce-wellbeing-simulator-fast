@@ -7,9 +7,10 @@ from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from config import (
     CATEGORY_LABELS,
@@ -54,6 +55,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Workforce Wellbeing Simulator API", lifespan=lifespan)
+
+
+class NoCacheStaticMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path == "/" or request.url.path.startswith("/static"):
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
+
+
+app.add_middleware(NoCacheStaticMiddleware)
 
 
 # ── Health ────────────────────────────────────────────────────────────────
