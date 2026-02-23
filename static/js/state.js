@@ -24,8 +24,8 @@ export const state = {
     featureNames: null,
     teamAverages: null,
     teamRawAverages: null,
-    teamBaseline: null,  // {mhq, unprod, individual_mhq, individual_unprod}
-    teamPrediction: null,  // {avg_mhq, avg_unproductive_days, individual_mhq, individual_unproductive_days}
+    teamBaseline: null,  // {mhq, unprod, teamq, individual_mhq, individual_unprod}
+    teamPrediction: null,  // {avg_mhq, avg_unproductive_days, teamq, individual_mhq, individual_unproductive_days}
 
     // Optimization
     optimizationGoal: null,
@@ -33,6 +33,9 @@ export const state = {
     highlightedLevers: new Set(),
     optimizationK: 2,
     isOptimizing: false,
+
+    // Sensitivity analysis
+    sensitivityResult: null,  // {features: [{name, current, curve, slope_mhq, ...}]}
 };
 
 export function subscribe(fn) {
@@ -65,6 +68,7 @@ export function clearTeamData() {
     state.teamPrediction = null;
     state.optimizationGoal = null;
     state.optimizationResult = null;
+    state.sensitivityResult = null;
     state.highlightedLevers = new Set();
     resetSliders();
 }
@@ -73,5 +77,6 @@ export function clearBaseline() {
     state.baseline = null;
     state.optimizationGoal = null;
     state.optimizationResult = null;
+    state.sensitivityResult = null;
     state.highlightedLevers = new Set();
 }

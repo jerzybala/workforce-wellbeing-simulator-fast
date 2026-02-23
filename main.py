@@ -20,7 +20,7 @@ from config import (
     MODEL_SOURCES,
     UPF_LABELS,
 )
-from models_loader import get_models, get_models_status, load_all_models
+from models_loader import get_models, get_models_status, get_shap_weights, load_all_models
 from optimization import search_best_levers, search_best_levers_team
 from prediction import predict_targets, predict_targets_batch
 from schemas import (
@@ -31,9 +31,12 @@ from schemas import (
     OptimizeResult,
     PredictRequest,
     PredictResponse,
+    SensitivityRequest,
+    SensitivityResponse,
     UploadResponse,
 )
-from team import apply_team_deltas, compute_team_averages, validate_team_csv
+from sensitivity import compute_sensitivity, compute_sensitivity_team
+from team import apply_team_deltas, compute_team_averages, compute_teamq, validate_team_csv
 
 
 def _load_features_config() -> List[Dict[str, Any]]:
@@ -126,9 +129,14 @@ async def predict_batch(req: BatchPredictRequest):
     )
 
     mhq_preds, unprod_preds = predict_targets_batch(adjusted_df, mhq_model, unprod_model)
+
+    shap_weights = get_shap_weights(req.model_source)
+    teamq = compute_teamq(req.slider_values, shap_weights, _features_config) if shap_weights else 0.0
+
     return BatchPredictResponse(
         avg_mhq=float(mhq_preds.mean()),
         avg_unproductive_days=float(unprod_preds.mean()),
+        teamq=teamq,
         individual_mhq=mhq_preds.tolist(),
         individual_unproductive_days=unprod_preds.tolist(),
     )
@@ -150,6 +158,10 @@ async def upload_csv(file: UploadFile = File(...), model_source: str = "models_w
 
     mhq_base, unprod_base = predict_targets_batch(df, mhq_model, unprod_model)
 
+    shap_weights = get_shap_weights(model_source)
+    # Use rounded team_averages (same values the sliders start at) so baseline matches initial prediction
+    baseline_teamq = compute_teamq(team_averages, shap_weights, _features_config) if shap_weights else 0.0
+
     return UploadResponse(
         team_data=df.values.tolist(),
         feature_names=feature_names,
@@ -158,6 +170,7 @@ async def upload_csv(file: UploadFile = File(...), model_source: str = "models_w
         row_count=len(df),
         baseline_mhq=float(mhq_base.mean()),
         baseline_unproductive_days=float(unprod_base.mean()),
+        baseline_teamq=baseline_teamq,
         baseline_individual_mhq=mhq_base.tolist(),
         baseline_individual_unproductive_days=unprod_base.tolist(),
     )
@@ -200,6 +213,36 @@ async def optimize(req: OptimizeRequest):
         ))
 
     return OptimizeResponse(top_results=top_results)
+
+
+# ── Sensitivity analysis ─────────────────────────────────────────────────
+
+@app.post("/api/sensitivity", response_model=SensitivityResponse)
+async def sensitivity(req: SensitivityRequest):
+    mhq_model, unprod_model = get_models(req.model_source)
+
+    if req.mode == "team" and req.team_data is not None and req.team_averages is not None:
+        feature_names = [cfg["name"] for cfg in _features_config]
+        team_df = pd.DataFrame(req.team_data, columns=feature_names)
+        results = compute_sensitivity_team(
+            team_df, req.team_averages, _features_config,
+            mhq_model, unprod_model,
+        )
+    else:
+        results = compute_sensitivity(
+            req.current_inputs, _features_config,
+            mhq_model, unprod_model,
+        )
+
+    return SensitivityResponse(features=results)
+
+
+# ── SHAP weights (for report) ────────────────────────────────────────────
+
+@app.get("/api/shap-weights")
+async def shap_weights(model_source: str = "models_west"):
+    weights = get_shap_weights(model_source)
+    return {"weights": weights}
 
 
 # ── Static files & SPA fallback ──────────────────────────────────────────

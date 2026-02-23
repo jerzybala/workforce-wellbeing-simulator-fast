@@ -1,10 +1,11 @@
-import { fetchFeaturesConfig, fetchModels, predict, predictBatch, uploadCsv, optimize } from './api.js';
+import { fetchFeaturesConfig, fetchModels, predict, predictBatch, uploadCsv, optimize, fetchSensitivity } from './api.js';
 import { state, resetSliders, clearTeamData, clearBaseline } from './state.js';
 import {
     renderAll, renderOutcomeBanner, renderSliders, renderStatusBadges,
     renderModeToggle, renderHelpText, renderTeamUpload, renderActionBar,
-    renderOptimizationResult, renderModelDropdown, showSpinner, hideSpinner,
+    renderOptimizationResult, renderSensitivityResult, renderModelDropdown, showSpinner, hideSpinner,
 } from './ui.js';
+import { generateReport } from './report.js';
 
 // ── Debounce helper ──────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ async function runPrediction() {
         state.currentPrediction = result;
     }
     renderOutcomeBanner();
+    renderTeamUpload();
 }
 
 function onSliderChange() {
@@ -73,6 +75,7 @@ function wireEvents() {
         state.currentPrediction = null;
         state.optimizationGoal = null;
         state.optimizationResult = null;
+        state.sensitivityResult = null;
         state.highlightedLevers = new Set();
         resetSliders();
         renderAll(onSliderChange);
@@ -84,6 +87,7 @@ function wireEvents() {
         state.mode = 'individual';
         state.optimizationGoal = null;
         state.optimizationResult = null;
+        state.sensitivityResult = null;
         state.highlightedLevers = new Set();
         resetSliders();
         renderAll(onSliderChange);
@@ -105,9 +109,8 @@ function wireEvents() {
         }
     });
 
-    // CSV upload
-    document.getElementById('csv-upload').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
+    // CSV upload — shared handler
+    async function handleCsvFile(file) {
         if (!file) return;
 
         const filenameEl = document.getElementById('csv-filename');
@@ -129,11 +132,11 @@ function wireEvents() {
         state.teamBaseline = {
             mhq: result.baseline_mhq,
             unprod: result.baseline_unproductive_days,
+            teamq: result.baseline_teamq,
             individual_mhq: result.baseline_individual_mhq,
             individual_unprod: result.baseline_individual_unproductive_days,
         };
 
-        // Set sliders to team averages
         for (const name of state.featureNames) {
             state.sliderValues[name] = state.teamAverages[name];
         }
@@ -144,6 +147,32 @@ function wireEvents() {
 
         renderAll(onSliderChange);
         await runPrediction();
+    }
+
+    document.getElementById('csv-upload').addEventListener('change', (e) => {
+        handleCsvFile(e.target.files[0]);
+    });
+
+    // Drag-and-drop on upload area
+    const dropZone = document.getElementById('team-upload-area');
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-500', 'bg-blue-50');
+    });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const name = file.name.toLowerCase();
+        if (name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png') || name.endsWith('.gif') || name.endsWith('.pdf')) {
+            alert(`"${file.name}" is not a CSV file. Please drop a .csv file.`);
+            return;
+        }
+        handleCsvFile(file);
     });
 
     // Clear team
@@ -152,6 +181,11 @@ function wireEvents() {
         document.getElementById('csv-upload').value = '';
         renderAll(onSliderChange);
         renderOutcomeBanner();
+    });
+
+    // Generate report
+    document.getElementById('btn-report').addEventListener('click', () => {
+        generateReport();
     });
 
     // Reset
@@ -165,6 +199,7 @@ function wireEvents() {
         }
         state.optimizationGoal = null;
         state.optimizationResult = null;
+        state.sensitivityResult = null;
         state.highlightedLevers = new Set();
         renderAll(onSliderChange);
         runPrediction();
@@ -232,6 +267,25 @@ function wireEvents() {
             renderActionBar();
         });
     }
+
+    // Sensitivity button
+    document.getElementById('btn-sensitivity').addEventListener('click', async () => {
+        showSpinner('Computing sensitivity analysis...');
+
+        const params = {
+            mode: state.mode,
+            current_inputs: state.sliderValues,
+            model_source: state.modelSource,
+            team_data: state.mode === 'team' ? state.teamData : null,
+            team_averages: state.mode === 'team' ? state.teamAverages : null,
+        };
+
+        const result = await fetchSensitivity(params);
+        hideSpinner();
+
+        state.sensitivityResult = result;
+        renderSensitivityResult();
+    });
 }
 
 // ── Start ────────────────────────────────────────────────────────────────

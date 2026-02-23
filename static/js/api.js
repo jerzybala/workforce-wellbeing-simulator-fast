@@ -52,3 +52,17 @@ export async function optimize(params) {
     });
     return res.json();
 }
+
+export async function fetchShapWeights(modelSource) {
+    const res = await fetch(`${API}/shap-weights?model_source=${modelSource}`);
+    return res.json();
+}
+
+export async function fetchSensitivity(params) {
+    const res = await fetch(`${API}/sensitivity`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+    });
+    return res.json();
+}

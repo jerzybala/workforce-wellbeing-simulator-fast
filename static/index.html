@@ -50,6 +50,7 @@
                 <label for="csv-upload" class="inline-block px-5 py-2.5 bg-blue-600 text-white font-semibold text-sm rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
                     Choose File
                 </label>
+                <span class="text-sm text-gray-400 ml-2">or drop CSV file here</span>
                 <input type="file" id="csv-upload" accept=".csv" class="hidden">
                 <p id="csv-filename" class="text-sm text-gray-600 mt-2"></p>
                 <p class="text-xs text-gray-500 mt-1">CSV with one row per team member. Max 10,000 rows.</p>
@@ -57,7 +58,28 @@
             <div id="team-loaded-info" class="hidden mt-2">
                 <div class="flex items-center gap-3">
                     <span id="team-loaded-text" class="text-sm font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-lg"></span>
-                    <button id="clear-team-btn" class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">Upload New CSV</button>
+                    <div id="teamq-display" class="teamq-container hidden">
+                        <div class="teamq-header">
+                            <span class="teamq-label">TeamQ</span>
+                            <button id="teamq-info-btn" class="teamq-info-btn" type="button" title="About TeamQ">
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm1 12H7V7h2v5zM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+                            </button>
+                            <span id="teamq-score" class="teamq-score"></span>
+                            <span id="teamq-delta" class="teamq-delta"></span>
+                        </div>
+                        <div class="teamq-bar-track">
+                            <div id="teamq-bar-fill" class="teamq-bar-fill"></div>
+                        </div>
+                        <div id="teamq-tooltip" class="teamq-tooltip hidden">
+                            TeamQ (Team Quality) represents the overall wellbeing profile of your
+                            team members. It is a composite score (0&ndash;100) that aggregates all
+                            work environment and lifestyle factors across the team, weighted by
+                            their importance to the Mental Health Quotient (MHQ). Higher scores
+                            indicate better overall team conditions.
+                        </div>
+                    </div>
+                    <button id="btn-report" class="text-sm px-3 py-1.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors">Generate Report</button>
+                    <button id="clear-team-btn" class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">Upload New Team Data (CSV)</button>
                 </div>
             </div>
         </div>
@@ -107,6 +129,7 @@
                         <button id="opt-mhq" class="action-btn flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" disabled>MHQ</button>
                         <button id="opt-productivity" class="action-btn flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Productivity</button>
                         <button id="opt-balanced" class="action-btn flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Balanced</button>
+                        <button id="btn-sensitivity" class="action-btn flex-1 px-4 py-2 border-2 border-gray-700 rounded-lg text-sm font-semibold bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Sensitivity</button>
                     </div>
                     <p id="optimize-hint" class="text-xs text-gray-500 mt-1">Set a baseline first to enable optimization</p>
                 </div>
@@ -124,6 +147,9 @@
 
         <!-- Optimization Result -->
         <div id="optimization-result" class="hidden mb-4"></div>
+
+        <!-- Sensitivity Result -->
+        <div id="sensitivity-result" class="hidden mb-4"></div>
 
         <!-- Loading Spinner -->
         <div id="spinner" class="hidden mb-4 text-center">

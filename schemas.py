@@ -26,6 +26,7 @@ class BatchPredictRequest(BaseModel):
 class BatchPredictResponse(BaseModel):
     avg_mhq: float
     avg_unproductive_days: float
+    teamq: float
     individual_mhq: List[float]
     individual_unproductive_days: List[float]
 
@@ -54,6 +55,34 @@ class OptimizeResponse(BaseModel):
     top_results: List[OptimizeResult]
 
 
+class SensitivityRequest(BaseModel):
+    mode: str = "individual"
+    current_inputs: Dict[str, float]
+    model_source: str = "models_west"
+    team_data: Optional[List[List[float]]] = None
+    team_averages: Optional[Dict[str, float]] = None
+
+
+class SensitivityCurvePoint(BaseModel):
+    value: float
+    mhq: float
+    unprod: float
+
+
+class SensitivityFeature(BaseModel):
+    name: str
+    current: float
+    curve: List[SensitivityCurvePoint]
+    slope_mhq: float
+    slope_unprod: float
+    total_delta_mhq: float
+    total_delta_unprod: float
+
+
+class SensitivityResponse(BaseModel):
+    features: List[SensitivityFeature]
+
+
 class UploadResponse(BaseModel):
     team_data: List[List[float]]
     feature_names: List[str]
@@ -62,5 +91,6 @@ class UploadResponse(BaseModel):
     row_count: int
     baseline_mhq: float
     baseline_unproductive_days: float
+    baseline_teamq: float
     baseline_individual_mhq: List[float]
     baseline_individual_unproductive_days: List[float]

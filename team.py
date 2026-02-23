@@ -68,6 +68,31 @@ def compute_team_averages(
     return averages
 
 
+def compute_teamq(
+    feature_averages: Dict[str, float],
+    shap_weights: Dict[str, float],
+    features_config: List[Dict[str, Any]],
+) -> float:
+    """SHAP-weighted normalized average of feature values, scaled 0-100."""
+    if not shap_weights:
+        return 0.0
+    cfg_map = {c["name"]: c for c in features_config}
+    weighted_sum = 0.0
+    weight_total = 0.0
+    for name, avg_val in feature_averages.items():
+        w = shap_weights.get(name, 0.0)
+        if w == 0.0:
+            continue
+        lo, hi = cfg_map[name]["min"], cfg_map[name]["max"]
+        norm = (float(avg_val) - lo) / (hi - lo) if hi != lo else 0.5
+        norm = max(0.0, min(1.0, norm))
+        weighted_sum += w * norm
+        weight_total += w
+    if weight_total == 0.0:
+        return 0.0
+    return (weighted_sum / weight_total) * 100.0
+
+
 def apply_team_deltas(
     team_df: pd.DataFrame,
     team_averages: Dict[str, float],

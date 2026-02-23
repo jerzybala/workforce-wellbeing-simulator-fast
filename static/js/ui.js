@@ -91,9 +91,62 @@ export function renderTeamUpload() {
         uploadArea.classList.add('hidden');
         loadedInfo.classList.remove('hidden');
         el('team-loaded-text').textContent = `Team data loaded — ${state.teamData.length} complete responses`;
+        renderTeamQ();
     } else {
         uploadArea.classList.remove('hidden');
         loadedInfo.classList.add('hidden');
+    }
+}
+
+let _teamqInfoWired = false;
+
+function renderTeamQ() {
+    const container = el('teamq-display');
+    if (!container) return;
+
+    const baseTeamq = state.teamBaseline?.teamq;
+    if (baseTeamq == null) {
+        container.classList.add('hidden');
+        return;
+    }
+
+    container.classList.remove('hidden');
+
+    const curTeamq = state.teamPrediction?.teamq ?? baseTeamq;
+    const dTeamq = curTeamq - baseTeamq;
+    const changed = Math.abs(dTeamq) >= 0.05;
+
+    // Score text
+    el('teamq-score').textContent = `${fmt1(curTeamq)} / 100`;
+
+    // Delta text
+    const deltaEl = el('teamq-delta');
+    if (changed) {
+        deltaEl.textContent = `(${sign(dTeamq)}${fmt1(dTeamq)})`;
+        deltaEl.className = `teamq-delta ${dTeamq > 0 ? 'positive' : 'negative'}`;
+    } else {
+        deltaEl.textContent = '';
+        deltaEl.className = 'teamq-delta neutral';
+    }
+
+    // Progress bar fill
+    const pct = Math.max(0, Math.min(100, curTeamq));
+    el('teamq-bar-fill').style.width = `${pct}%`;
+
+    // Wire info button once
+    if (!_teamqInfoWired) {
+        _teamqInfoWired = true;
+        const infoBtn = el('teamq-info-btn');
+        const tooltip = el('teamq-tooltip');
+        if (infoBtn && tooltip) {
+            infoBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                tooltip.classList.toggle('hidden');
+            });
+            document.addEventListener('click', () => {
+                tooltip.classList.add('hidden');
+            });
+        }
     }
 }
 
@@ -104,8 +157,8 @@ export function renderOutcomeBanner() {
     const hasBaseline = isTeam ? state.teamBaseline !== null : state.baseline !== null;
 
     // Labels
-    el('mhq-label').textContent = isTeam ? 'Avg. Mental Health Quotient (MHQ)' : 'Mental Health Quotient (MHQ)';
-    el('unprod-label').textContent = isTeam ? 'Avg. Productive Days (per month)' : 'Productive Days (per month)';
+    el('mhq-label').textContent = isTeam ? 'Baseline Avg. Mental Health Quotient (MHQ)' : 'Mental Health Quotient (MHQ)';
+    el('unprod-label').textContent = isTeam ? 'Baseline Avg. Productive Days (per month)' : 'Productive Days (per month)';
 
     if (isTeam && state.teamData) {
         el('banner-subtitle').textContent = `Team of ${state.teamData.length} members — simulating uniform interventions.`;
@@ -277,7 +330,7 @@ export function renderOptimizationResult() {
     container.innerHTML = `
         <div class="opt-result ${goalClass}">
             <div class="mb-2">
-                <span style="color:${goalColor};font-weight:700;font-size:1.1rem;">Optimized for ${goalLabel}</span>
+                <span style="color:${goalColor};font-weight:700;font-size:1.1rem;">Optimized for ${goalLabel} (with max factors)</span>
             </div>
             <div class="mb-2">
                 <span class="text-sm font-semibold" style="color:#065f46">Focus on: </span>
@@ -290,6 +343,102 @@ export function renderOptimizationResult() {
         </div>`;
 }
 
+// ── Sensitivity Result ───────────────────────────────────────────────────
+
+export function renderSensitivityResult() {
+    const container = el('sensitivity-result');
+
+    if (!state.sensitivityResult) {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+        return;
+    }
+
+    const features = state.sensitivityResult.features;
+    const isTeam = state.mode === 'team';
+    const prefix = isTeam ? 'Avg. ' : '';
+
+    let html = `<div class="sens-result">
+        <div class="sens-header">
+            <span class="sens-title">Factor Sensitivity — Sequential Priority</span>
+            <button id="sens-close" class="sens-close">&times;</button>
+        </div>
+        <p class="sens-subtitle">Factors ranked by MHQ improvement per unit increase from current position.</p>
+        <div class="sens-list">`;
+
+    features.forEach((f, i) => {
+        const cfg = state.featuresConfig.find(c => c.name === f.name);
+        const label = cfg ? cfg.label : f.name;
+        const cat = cfg ? cfg.category : '';
+        const sparkSvg = buildSparkline(f.curve, f.current, cfg);
+        const slopeMhq = f.slope_mhq;
+        const totalMhq = f.total_delta_mhq;
+        const totalUnprod = f.total_delta_unprod;
+        const slopeClass = slopeMhq > 0 ? 'positive' : slopeMhq < 0 ? 'negative' : '';
+        const totalClass = totalMhq > 0 ? 'positive' : totalMhq < 0 ? 'negative' : '';
+        const prodDelta = -totalUnprod;
+        const prodClass = prodDelta > 0 ? 'positive' : prodDelta < 0 ? 'negative' : '';
+
+        html += `
+        <div class="sens-row">
+            <div class="sens-rank">${i + 1}</div>
+            <div class="sens-info">
+                <div class="sens-name">${label}</div>
+                <div class="sens-meta">${categoryLabel(cat)} · Current: ${fmt1(f.current)}</div>
+            </div>
+            <div class="sens-sparkline">${sparkSvg}</div>
+            <div class="sens-metrics">
+                <div class="sens-slope ${slopeClass}">${sign(slopeMhq)}${fmt1(slopeMhq)} <span class="sens-unit">MHQ/unit</span></div>
+                <div class="sens-total">Total: <span class="${totalClass}">${sign(totalMhq)}${fmt1(totalMhq)} MHQ</span> · <span class="${prodClass}">${sign(prodDelta)}${fmt1(prodDelta)} days</span></div>
+            </div>
+        </div>`;
+    });
+
+    html += `</div></div>`;
+    container.classList.remove('hidden');
+    container.innerHTML = html;
+
+    // Wire close button
+    el('sens-close')?.addEventListener('click', () => {
+        state.sensitivityResult = null;
+        renderSensitivityResult();
+    });
+}
+
+function categoryLabel(cat) {
+    return state.categories[cat] || cat;
+}
+
+function buildSparkline(curve, current, cfg) {
+    const W = 140, H = 36;
+    const padding = 8;
+    const mhqVals = curve.map(p => p.mhq);
+    const minMhq = Math.min(...mhqVals);
+    const maxMhq = Math.max(...mhqVals);
+    const range = maxMhq - minMhq || 1;
+
+    const xVals = curve.map(p => p.value);
+    const xMin = Math.min(...xVals);
+    const xMax = Math.max(...xVals);
+    const xRange = xMax - xMin || 1;
+
+    const points = curve.map(p => {
+        const x = padding + ((p.value - xMin) / xRange) * (W - 2 * padding);
+        const y = (H - padding) - ((p.mhq - minMhq) / range) * (H - 2 * padding);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+
+    // Current position marker
+    const cx = padding + ((current - xMin) / xRange) * (W - 2 * padding);
+    const curPoint = curve.reduce((best, p) => Math.abs(p.value - current) < Math.abs(best.value - current) ? p : best, curve[0]);
+    const cy = (H - padding) - ((curPoint.mhq - minMhq) / range) * (H - 2 * padding);
+
+    return `<svg width="${W}" height="${H}" class="sens-spark-svg" style="overflow:visible">
+        <polyline points="${points}" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" fill="#f87171" stroke="#fff" stroke-width="1.5"/>
+    </svg>`;
+}
+
 // ── Action Bar State ─────────────────────────────────────────────────────
 
 export function renderActionBar() {
@@ -298,6 +447,7 @@ export function renderActionBar() {
     el('opt-mhq').disabled = !canOptimize;
     el('opt-productivity').disabled = !canOptimize;
     el('opt-balanced').disabled = !canOptimize;
+    el('btn-sensitivity').disabled = !canOptimize;
 
     if (!canOptimize) {
         el('optimize-hint').textContent = state.mode === 'team'
@@ -346,5 +496,6 @@ export function renderAll(onSliderChange) {
     renderOutcomeBanner();
     renderActionBar();
     renderOptimizationResult();
+    renderSensitivityResult();
     renderSliders(onSliderChange);
 }
