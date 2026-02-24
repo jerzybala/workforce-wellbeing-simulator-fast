@@ -67,7 +67,9 @@ UPF_TEXT_TO_ORD = {
     "Several times a day": 1,
     "Once a day": 2,
     "Several days a week": 3,
+    "A few times a week": 3,
     "Few days a week": 3,
     "A few times a month": 4,
     "Rarely/Never": 5,
+    "Rarely/never": 5,
 }
