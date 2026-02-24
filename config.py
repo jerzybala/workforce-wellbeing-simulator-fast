@@ -49,7 +49,7 @@ CEN_COLUMN_MAP = {
     "Please rate the nature of your relationship with your manager or supervisor": "work_manager",
     "Please rate how informed you feel about what is going on in your team": "work_informed",
     "Please rate how you perceive your work is valued and recognized": "work_recognition",
-    "How regularly to you engage in physical exercise (30 minutes or more)?": "exercise_freq_ord",
+    "How regularly do you engage in physical exercise (30 minutes or more)?": "exercise_freq_ord",
     "How often do you eat processed, packaged, or fast food that is not made from fresh ingredients?": "UPF_freq_ord",
 }
 
