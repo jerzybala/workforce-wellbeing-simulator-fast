@@ -18,7 +18,6 @@ from config import (
     EXERCISE_LABELS,
     FEATURE_CONFIG_PATH,
     MODEL_SOURCES,
-    SLEEP_LABELS,
     UPF_LABELS,
 )
 from models_loader import get_models, get_models_status, get_shap_weights, get_shap_weights_unprod, load_all_models
@@ -87,7 +86,6 @@ async def features_config():
         "features": _features_config,
         "exercise_labels": EXERCISE_LABELS,
         "upf_labels": UPF_LABELS,
-        "sleep_labels": SLEEP_LABELS,
         "categories": CATEGORY_LABELS,
     }
 

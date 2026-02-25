@@ -75,6 +75,13 @@ UPF_ORDER = [
     "Rarely/Never",
 ]
 
+SLEEP_ORDER = [
+    "Hardly ever",
+    "Some of the time",
+    "Most of the time",
+    "All of the time",
+]
+
 SCENARIOS = [
     ("cap7", 7),  # recommended: lift low factors to at least 7, set lifestyle best
     ("full", None),  # optimistic: set all factors to max
@@ -140,8 +147,8 @@ class TargetEncoder(BaseEstimator, TransformerMixin):
         return X_df
 
 
-def _make_frequency_maps() -> Tuple[Dict[str, int], Dict[str, int]]:
-    """Create ordinal maps for exercise (higher is better) and UPF (higher is better)."""
+def _make_frequency_maps() -> Tuple[Dict[str, int], Dict[str, int], Dict[str, int]]:
+    """Create ordinal maps for exercise, UPF, and sleep (all higher is better)."""
     exercise_map = {label: idx for idx, label in enumerate(EXERCISE_ORDER)}
     # For UPF: UPF_ORDER goes from worst (most UPF = "Several times a day") to best (least UPF = "Rarely/Never").
     # We want higher ordinal values to mean healthier (less UPF), so we assign values in natural order:
@@ -149,7 +156,9 @@ def _make_frequency_maps() -> Tuple[Dict[str, int], Dict[str, int]]:
     upf_map = {label: idx for idx, label in enumerate(UPF_ORDER)}
     # Normalize casing variant
     upf_map["Rarely/never"] = upf_map["Rarely/Never"]
-    return exercise_map, upf_map
+    # Sleep: "Hardly ever" (worst) = 0, ..., "All of the time" (best) = 3
+    sleep_map = {label: idx for idx, label in enumerate(SLEEP_ORDER)}
+    return exercise_map, upf_map, sleep_map
 
 
 def _midpoint_from_text(val: object) -> float:
@@ -171,7 +180,7 @@ def load_and_prepare(
     path: Path = DATA_PATH,
     use_extended: bool = USE_EXTENDED_FEATURES,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    exercise_map, upf_map = _make_frequency_maps()
+    exercise_map, upf_map, sleep_map = _make_frequency_maps()
     df = pd.read_csv(path)
     # Preserve original row order for traceability.
     df = df.reset_index().rename(columns={"index": "row_id"}).set_index("row_id")
@@ -185,17 +194,19 @@ def load_and_prepare(
 
     df["exercise_freq_ord"] = df["exercise_freq"].map(exercise_map)
     df["UPF_freq_ord"] = df["UPF_freq"].map(upf_map)
+    df["sleep_freq_ord"] = df["sleep_freq"].map(sleep_map)
 
     for col in CATEGORICAL_COLS:
         if col in df.columns:
             df[col] = df[col].fillna("Unknown").astype(str)
 
     # Drop rows where mapping failed
-    df = df.dropna(subset=["exercise_freq_ord", "UPF_freq_ord", "overall_mhq_score", "productivity_composite"])
+    df = df.dropna(subset=["exercise_freq_ord", "UPF_freq_ord", "sleep_freq_ord", "overall_mhq_score", "productivity_composite"])
 
     feature_cols = WORK_FACTOR_COLS + [
         "exercise_freq_ord",
         "UPF_freq_ord",
+        "sleep_freq_ord",
     ]
 
     if use_extended:
@@ -296,6 +307,7 @@ def compute_uplift(
 
     exercise_max = max(_make_frequency_maps()[0].values())
     upf_best = max(_make_frequency_maps()[1].values())
+    sleep_best = max(_make_frequency_maps()[2].values())
 
     if strategy == "cap":
         X_cf[WORK_FACTOR_COLS] = np.maximum(X_cf[WORK_FACTOR_COLS], floor)
@@ -305,6 +317,7 @@ def compute_uplift(
     # Lifestyle always pushed to healthiest observed ordinal
     X_cf["exercise_freq_ord"] = exercise_max
     X_cf["UPF_freq_ord"] = upf_best
+    X_cf["sleep_freq_ord"] = sleep_best
 
     base_pred = model.predict(X_base)
     cf_pred = model.predict(X_cf)
@@ -622,9 +635,10 @@ def _write_markdown_report(
         features_list = data_info.get("feature_list")
         if features_list:
             md_lines.append(f"- Feature columns: {', '.join(features_list)}")
-        md_lines.append("- Work factors are 1–9 Likert-style scores; exercise_freq_ord and UPF_freq_ord are ordinal (0=worst to 4=best).")
+        md_lines.append("- Work factors are 1–9 Likert-style scores; exercise_freq_ord, UPF_freq_ord, and sleep_freq_ord are ordinal (higher is better).")
         md_lines.append("- exercise_freq_ord levels (0->4): Rarely/Never, Less than once a week, Once a week, Several days a week, Everyday.")
         md_lines.append("- UPF_freq_ord levels (0->4; higher is healthier): Several times a day, Once a day, Several days a week, A few times a month, Rarely/Never.")
+        md_lines.append("- sleep_freq_ord levels (0->3): Hardly ever, Some of the time, Most of the time, All of the time.")
         age_counts = data_info.get("age_counts") or {}
         over24 = data_info.get("age_over24_share")
         if age_counts:
@@ -860,7 +874,7 @@ def run_experiment() -> None:
         # MHQ: higher is better; Productivity (unproductive days): lower is better.
         higher_is_better = target_name == "mhq"
         mono_sign = 1 if higher_is_better else -1
-        base_feature_count = len(WORK_FACTOR_COLS) + 2  # work factors + lifestyle ordinals
+        base_feature_count = len(WORK_FACTOR_COLS) + 3  # work factors + lifestyle ordinals
         extra_feature_count = max(len(feature_names_core) - base_feature_count, 0)
         monotone_list = [mono_sign] * base_feature_count + [0] * extra_feature_count
 

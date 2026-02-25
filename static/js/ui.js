@@ -274,15 +274,11 @@ function renderSliderGroup(category, container, onSliderChange) {
         const group = document.createElement('div');
         group.className = `slider-group ${isHighlighted ? 'highlighted' : ''}`;
 
-        if (cfg.name === 'exercise_freq_ord' || cfg.name === 'UPF_freq_ord' || cfg.name === 'sleep_freq_ord') {
-            const labels = cfg.name === 'exercise_freq_ord' ? state.exerciseLabels
-                : cfg.name === 'UPF_freq_ord' ? state.upfLabels
-                : state.sleepLabels;
+        if (cfg.name === 'exercise_freq_ord' || cfg.name === 'UPF_freq_ord') {
+            const labels = cfg.name === 'exercise_freq_ord' ? state.exerciseLabels : state.upfLabels;
             const captionText = cfg.name === 'exercise_freq_ord'
                 ? (rawAvg != null ? `Baseline avg: ${rawAvg.toFixed(1)} · Higher = more frequent exercise` : 'Higher = more frequent exercise')
-                : cfg.name === 'UPF_freq_ord'
-                ? (rawAvg != null ? `Baseline avg: ${rawAvg.toFixed(1)} · Higher = healthier (less UPF)` : 'Higher = healthier (less UPF)')
-                : (rawAvg != null ? `Baseline avg: ${rawAvg.toFixed(1)} · Higher = better sleep` : 'Higher = better sleep');
+                : (rawAvg != null ? `Baseline avg: ${rawAvg.toFixed(1)} · Higher = healthier (less UPF)` : 'Higher = healthier (less UPF)');
 
             group.className += ' select-slider';
             group.innerHTML = `

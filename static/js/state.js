@@ -9,7 +9,6 @@ export const state = {
     featuresConfig: [],
     exerciseLabels: [],
     upfLabels: [],
-    sleepLabels: [],
     categories: {},
     modelSources: [],
 

@@ -1,14 +1,13 @@
 {
-  "work_control_time": 0.517549,
-  "work_control_job": 2.103139,
-  "work_amount": 1.63543,
-  "work_purpose": 11.066161,
-  "work_learning": 2.851924,
-  "work_colleagues": 9.039676,
-  "work_manager": 0.15555,
-  "work_informed": 4.04476,
-  "work_recognition": 6.326684,
-  "exercise_freq_ord": 8.174689,
-  "UPF_freq_ord": 10.049415,
-  "sleep_freq_ord": 14.319724
+  "work_control_time": 1.87222,
+  "work_control_job": 4.499651,
+  "work_amount": 4.803994,
+  "work_purpose": 12.692871,
+  "work_learning": 4.784616,
+  "work_colleagues": 9.727239,
+  "work_manager": 0.059643,
+  "work_informed": 2.024194,
+  "work_recognition": 9.165092,
+  "exercise_freq_ord": 8.624633,
+  "UPF_freq_ord": 8.44791
 }

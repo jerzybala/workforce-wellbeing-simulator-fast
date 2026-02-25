@@ -45,7 +45,6 @@ async function init() {
     state.featuresConfig = configData.features;
     state.exerciseLabels = configData.exercise_labels;
     state.upfLabels = configData.upf_labels;
-    state.sleepLabels = configData.sleep_labels;
     state.categories = configData.categories;
 
     const modelsData = await fetchModels();
