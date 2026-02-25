@@ -3,7 +3,7 @@ import { state, resetSliders, clearTeamData, clearBaseline } from './state.js';
 import {
     renderAll, renderOutcomeBanner, renderSliders, renderStatusBadges,
     renderModeToggle, renderHelpText, renderTeamUpload, renderActionBar,
-    renderOptimizationResult, renderSensitivityResult, renderModelDropdown,
+    renderSensitivityResult, renderModelDropdown,
     renderExtraColumnsChart, showSpinner, hideSpinner,
 } from './ui.js';
 import { generateReport } from './report.js';
@@ -286,7 +286,6 @@ function wireEvents() {
                 state.highlightedLevers = new Set();
             }
 
-            renderOptimizationResult();
             renderSliders(onSliderChange);
             renderActionBar();
         });

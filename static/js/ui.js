@@ -108,18 +108,22 @@ let _teampInfoWired = false;
 
 function renderTeamQ() {
     const baseTeamq = state.teamBaseline?.teamq;
-    if (baseTeamq == null) return;
+    const baseTeamp = state.teamBaseline?.teamp;
+    if (baseTeamq == null || baseTeamp == null) return;
 
     const curTeamq = state.teamPrediction?.teamq ?? baseTeamq;
-    const dTeamq = curTeamq - baseTeamq;
-    const changed = Math.abs(dTeamq) >= 0.05;
+    const curTeamp = state.teamPrediction?.teamp ?? baseTeamp;
+    const baseAvg = (baseTeamq + baseTeamp) / 2;
+    const curAvg = (curTeamq + curTeamp) / 2;
+    const dAvg = curAvg - baseAvg;
+    const changed = Math.abs(dAvg) >= 0.05;
 
-    el('teamq-value').textContent = fmt1(curTeamq);
+    el('teamq-value').textContent = fmt1(curAvg);
 
     const pctEl = el('teamq-pct');
     if (changed) {
-        pctEl.textContent = `${sign(dTeamq)}${fmt1(dTeamq)} vs baseline`;
-        pctEl.className = `text-xl font-medium ${dTeamq > 0 ? 'text-purple-200' : 'text-red-200'}`;
+        pctEl.textContent = `${sign(dAvg)}${fmt1(dAvg)} vs baseline`;
+        pctEl.className = `text-xl font-medium ${dAvg > 0 ? 'text-purple-200' : 'text-red-200'}`;
     } else {
         pctEl.textContent = 'vs baseline';
         pctEl.className = 'text-xl font-medium opacity-60';
@@ -140,36 +144,7 @@ function renderTeamQ() {
 }
 
 function renderTeamP() {
-    const baseTeamp = state.teamBaseline?.teamp;
-    if (baseTeamp == null) return;
-
-    const curTeamp = state.teamPrediction?.teamp ?? baseTeamp;
-    const dTeamp = curTeamp - baseTeamp;
-    const changed = Math.abs(dTeamp) >= 0.05;
-
-    el('teamp-value').textContent = fmt1(curTeamp);
-
-    const pctEl = el('teamp-pct');
-    if (changed) {
-        pctEl.textContent = `${sign(dTeamp)}${fmt1(dTeamp)} vs baseline`;
-        pctEl.className = `text-xl font-medium ${dTeamp > 0 ? 'text-teal-200' : 'text-red-200'}`;
-    } else {
-        pctEl.textContent = 'vs baseline';
-        pctEl.className = 'text-xl font-medium opacity-60';
-    }
-
-    if (!_teampInfoWired) {
-        _teampInfoWired = true;
-        const infoBtn = el('teamp-info-btn');
-        const tooltip = el('teamp-tooltip');
-        if (infoBtn && tooltip) {
-            infoBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                tooltip.classList.toggle('hidden');
-            });
-            document.addEventListener('click', () => tooltip.classList.add('hidden'));
-        }
-    }
+    // TeamP is now incorporated into the TeamQ average — no separate rendering needed
 }
 
 // ── Outcome Banner ───────────────────────────────────────────────────────
@@ -179,8 +154,8 @@ export function renderOutcomeBanner() {
     const hasBaseline = isTeam ? state.teamBaseline !== null : state.baseline !== null;
 
     // Labels
-    el('mhq-label').textContent = isTeam ? 'Baseline Avg. Mental Health Quotient (MHQ)' : 'Mental Health Quotient (MHQ)';
-    el('unprod-label').textContent = isTeam ? 'Baseline Avg. Productive Days (per month)' : 'Productive Days (per month)';
+    el('mhq-label').textContent = 'Capacity to Perform';
+    el('unprod-label').textContent = 'Productive Days';
 
     if (isTeam && state.teamData) {
         el('banner-subtitle').textContent = `Team of ${state.teamData.length} members — simulating uniform interventions.`;
@@ -191,10 +166,9 @@ export function renderOutcomeBanner() {
     if (!hasBaseline) {
         el('mhq-value').innerHTML = '&mdash;';
         el('mhq-pct').textContent = '';
-        el('mhq-range').textContent = '';
+        el('unprod-baseline-val').innerHTML = '&mdash;';
         el('unprod-value').innerHTML = '&mdash;';
         el('unprod-pct').textContent = '';
-        el('unprod-range').textContent = '';
         el('banner-caption').textContent = isTeam
             ? 'Upload a CSV to set the team baseline.'
             : 'Set a baseline to see how changes in work factors impact mental health and productivity.';
@@ -222,31 +196,18 @@ export function renderOutcomeBanner() {
 
     el('mhq-value').textContent = `${sign(dMhq)}${fmt1(dMhq)}`;
     el('mhq-pct').textContent = `(${sign(pctMhq)}${fmt1(pctMhq)}%)`;
+    const WORKING_DAYS = 22;
+    const baselineProdDays = WORKING_DAYS - baseUnprod;
     const dProd = -dUnprod;
     const pctProd = -pctUnprod;
-    el('unprod-value').textContent = `${sign(dProd)}${fmt1(dProd)}`;
-    el('unprod-pct').textContent = `(${sign(pctProd)}${fmt1(pctProd)}%)`;
+    el('unprod-baseline-val').textContent = fmt1(baselineProdDays);
+    el('unprod-value').textContent = Math.abs(dProd) >= 0.05 ? `${sign(dProd)}${fmt1(dProd)} days` : 'no change';
+    el('unprod-pct').textContent = Math.abs(dProd) >= 0.05 ? `(${sign(pctProd)}${fmt1(pctProd)}%)` : '';
 
     // Unproductive days card color
     const unprodCard = el('unprod-card');
     unprodCard.classList.toggle('warning', curUnprod > 3);
 
-    // Team min/max ranges
-    if (isTeam && state.teamPrediction && state.teamBaseline.individual_mhq) {
-        const baseMhqInd = state.teamBaseline.individual_mhq;
-        const baseUnprodInd = state.teamBaseline.individual_unprod;
-        const curMhqInd = state.teamPrediction.individual_mhq;
-        const curUnprodInd = state.teamPrediction.individual_unproductive_days;
-
-        const mhqDeltas = curMhqInd.map((v, i) => v - baseMhqInd[i]);
-        const prodDeltas = curUnprodInd.map((v, i) => -(v - baseUnprodInd[i]));
-
-        el('mhq-range').textContent = `Range: ${sign(Math.min(...mhqDeltas))}${fmt1(Math.min(...mhqDeltas))} to ${sign(Math.max(...mhqDeltas))}${fmt1(Math.max(...mhqDeltas))}`;
-        el('unprod-range').textContent = `Range: ${sign(Math.min(...prodDeltas))}${fmt1(Math.min(...prodDeltas))} to ${sign(Math.max(...prodDeltas))}${fmt1(Math.max(...prodDeltas))}`;
-    } else {
-        el('mhq-range').textContent = '';
-        el('unprod-range').textContent = '';
-    }
 
     if (isTeam) {
         el('banner-caption').textContent = `Team of ${state.teamData.length} members. Showing average change from baseline.`;
@@ -336,47 +297,8 @@ function renderSliderGroup(category, container, onSliderChange) {
 
 export function renderOptimizationResult() {
     const container = el('optimization-result');
-
-    if (!state.optimizationResult || !state.optimizationGoal) {
-        container.classList.add('hidden');
-        container.innerHTML = '';
-        return;
-    }
-
-    const result = state.optimizationResult;
-    const goal = state.optimizationGoal;
-    const isTeam = state.mode === 'team';
-    const prefix = isTeam ? 'Avg. ' : '';
-
-    const goalClass = `goal-${goal}`;
-    const goalColor = { mhq: '#8b5cf6', productivity: '#f59e0b', balanced: '#10b981' }[goal] || '#10b981';
-    const goalLabel = { mhq: 'MHQ', productivity: 'Productivity', balanced: 'Balanced' }[goal] || goal;
-
-    const leverLabels = result.levers.map(l => `<strong>${featureLabel(l)}</strong>`).join(', ');
-
-    let improvements = [];
-    if (goal === 'mhq' || goal === 'balanced') {
-        improvements.push(`<span style="color:#10b981;font-weight:600">${prefix}MHQ ${sign(result.delta_mhq)}${fmt1(result.delta_mhq)}</span>`);
-    }
-    if (goal === 'productivity' || goal === 'balanced') {
-        improvements.push(`<span style="color:#f59e0b;font-weight:600">${prefix}Days ${sign(result.delta_unprod)}${fmt1(result.delta_unprod)}</span>`);
-    }
-
-    container.classList.remove('hidden');
-    container.innerHTML = `
-        <div class="opt-result ${goalClass}">
-            <div class="mb-2">
-                <span style="color:${goalColor};font-weight:700;font-size:1.1rem;">Optimized for ${goalLabel} (with max factors)</span>
-            </div>
-            <div class="mb-2">
-                <span class="text-sm font-semibold" style="color:#065f46">Focus on: </span>
-                <span class="text-sm" style="color:#047857">${leverLabels}</span>
-            </div>
-            <div>
-                <span class="text-sm font-semibold" style="color:#065f46">Expected: </span>
-                <span class="text-sm">${improvements.join(' &bull; ')}</span>
-            </div>
-        </div>`;
+    container.classList.add('hidden');
+    container.innerHTML = '';
 }
 
 // ── Sensitivity Result ───────────────────────────────────────────────────
