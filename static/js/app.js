@@ -236,11 +236,12 @@ function wireEvents() {
         document.getElementById(btnId).addEventListener('click', async () => {
             const k = parseInt(document.getElementById('optimize-k').value);
 
-            // Always optimize from baseline, not from current (possibly modified) sliders
-            if (state.mode === 'team' && state.teamAverages) {
-                state.sliderValues = { ...state.teamAverages };
-            } else if (state.mode === 'individual' && state.baseline) {
-                state.sliderValues = { ...state.baseline.features };
+            // Block if all features are already at maximum — nothing to improve
+            const allAtMax = state.featuresConfig.every(cfg => state.sliderValues[cfg.name] >= cfg.max);
+            if (allAtMax) {
+                el('optimize-hint').textContent = 'All factors are at maximum — no room to optimize. Reset or adjust sliders first.';
+                el('optimize-hint').classList.remove('hidden');
+                return;
             }
 
             state.isOptimizing = true;
