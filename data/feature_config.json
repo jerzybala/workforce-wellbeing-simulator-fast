@@ -1,13 +1,13 @@
 [
-  {"name": "work_control_time", "label": "Control of Time", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
+  {"name": "work_control_time", "label": "Work-Life Balance", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
   {"name": "work_control_job", "label": "Job Security", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
-  {"name": "work_amount", "label": "Work Amount", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
-  {"name": "work_purpose", "label": "Purpose at Work", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
-  {"name": "work_learning", "label": "Learning at Work", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
-  {"name": "work_colleagues", "label": "Colleagues Support", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
-  {"name": "work_manager", "label": "Manager Support", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
-  {"name": "work_informed", "label": "Feeling Informed", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
-  {"name": "work_recognition", "label": "Recognition", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
-  {"name": "exercise_freq_ord", "label": "Exercise Frequency", "min": 1, "max": 5, "step": 1, "default": 3, "category": "lifestyle"},
-  {"name": "UPF_freq_ord", "label": "Ultra-Processed Food", "min": 1, "max": 5, "step": 1, "default": 3, "category": "lifestyle"}
+  {"name": "work_amount", "label": "Manageable Workload", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
+  {"name": "work_purpose", "label": "Pride & Purpose", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
+  {"name": "work_learning", "label": "Learning & Growth", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
+  {"name": "work_colleagues", "label": "Relationship with Colleagues", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
+  {"name": "work_manager", "label": "Relationship with Manager", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
+  {"name": "work_informed", "label": "Flow of Information", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
+  {"name": "work_recognition", "label": "Reward & Recognition", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
+  {"name": "exercise_freq_ord", "label": "Exercise", "min": 1, "max": 5, "step": 1, "default": 3, "category": "lifestyle"},
+  {"name": "UPF_freq_ord", "label": "Diet", "min": 1, "max": 5, "step": 1, "default": 3, "category": "lifestyle"}
 ]

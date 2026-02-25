@@ -37,7 +37,7 @@ export const state = {
 
     // Sensitivity analysis
     sensitivityResult: null,  // {features: [{name, current, curve, slope_mhq, ...}]}
-    sensitivityMetric: 'mhq',  // 'mhq' | 'unprod'
+    sensitivityMetric: 'unprod',  // 'mhq' | 'unprod'
 };
 
 export function subscribe(fn) {

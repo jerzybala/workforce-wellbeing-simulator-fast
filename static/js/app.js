@@ -308,6 +308,7 @@ function wireEvents() {
         hideSpinner();
 
         state.sensitivityResult = result;
+        state.sensitivityMetric = 'unprod';
         renderSensitivityResult();
     });
 }
