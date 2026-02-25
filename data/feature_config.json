@@ -9,5 +9,5 @@
   {"name": "work_informed", "label": "Flow of Information", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
   {"name": "work_recognition", "label": "Reward & Recognition", "min": 1, "max": 9, "step": 1, "default": 5, "category": "work"},
   {"name": "exercise_freq_ord", "label": "Exercise", "min": 1, "max": 5, "step": 1, "default": 3, "category": "lifestyle"},
-  {"name": "UPF_freq_ord", "label": "Diet", "min": 1, "max": 5, "step": 1, "default": 3, "category": "lifestyle"}
+  {"name": "UPF_freq_ord", "label": "Ultra-Processed Food", "min": 1, "max": 5, "step": 1, "default": 3, "category": "lifestyle"}
 ]

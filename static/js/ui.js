@@ -21,6 +21,7 @@ export function renderModeToggle() {
 
     el('team-upload-section').classList.toggle('hidden', state.mode !== 'team');
     el('btn-max-all').classList.toggle('hidden', state.mode !== 'team');
+    if (state.mode !== 'team') el('team-scores-row').classList.add('hidden');
 
     // Update button labels
     if (state.mode === 'team') {
@@ -69,15 +70,15 @@ export function renderHelpText() {
     const container = el('help-text');
     if (state.mode === 'team') {
         container.innerHTML = `
-            <p><strong>Step 1:</strong> Upload a CSV with one row per team member (11 features).</p>
-            <p><strong>Step 2:</strong> Adjust sliders to simulate uniform interventions.</p>
-            <p><strong>Step 3:</strong> Click MHQ, Productivity, or Balanced to optimize.</p>`;
+            <p><strong>Step 1:</strong> Upload a CSV with one row per team member (11 factors).</p>
+            <p><strong>Step 2:</strong> Adjust sliders to simulate uniform interventions across the team.</p>
+            <p><strong>Step 3:</strong> Click <strong>Productivity</strong>, <strong>MHQ</strong>, or <strong>Balanced</strong> to find the best levers, or use <strong>Sensitivity</strong> to explore factor impact (opens on Productive Days by default).</p>`;
     } else {
         container.innerHTML = `
             <p><strong>Step 1:</strong> Adjust sliders to reflect your current situation.</p>
-            <p><strong>Step 2:</strong> Click "Set Baseline" to save your reference point.</p>
-            <p><strong>Step 3:</strong> Move sliders to explore changes.</p>
-            <p><strong>Step 4:</strong> Click an optimization button to find best improvements.</p>`;
+            <p><strong>Step 2:</strong> Click <strong>Set Baseline</strong> to save your reference point.</p>
+            <p><strong>Step 3:</strong> Move sliders to explore changes — the <em>Capacity to Perform</em> and <em>Productive Days</em> cards update live.</p>
+            <p><strong>Step 4:</strong> Click <strong>Productivity</strong>, <strong>MHQ</strong>, or <strong>Balanced</strong> to find optimal improvements.</p>`;
     }
 }
 
