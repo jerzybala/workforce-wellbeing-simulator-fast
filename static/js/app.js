@@ -235,6 +235,14 @@ function wireEvents() {
     for (const [btnId, goal] of [['opt-mhq', 'mhq'], ['opt-productivity', 'productivity'], ['opt-balanced', 'balanced']]) {
         document.getElementById(btnId).addEventListener('click', async () => {
             const k = parseInt(document.getElementById('optimize-k').value);
+
+            // Always optimize from baseline, not from current (possibly modified) sliders
+            if (state.mode === 'team' && state.teamAverages) {
+                state.sliderValues = { ...state.teamAverages };
+            } else if (state.mode === 'individual' && state.baseline) {
+                state.sliderValues = { ...state.baseline.features };
+            }
+
             state.isOptimizing = true;
             showSpinner(`Searching for best ${k} inputs to optimize for ${goal}...`);
 
