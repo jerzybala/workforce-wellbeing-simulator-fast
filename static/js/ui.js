@@ -282,8 +282,7 @@ function renderSliderGroup(category, container, onSliderChange) {
 
             group.className += ' select-slider';
             group.innerHTML = `
-                ${isHighlighted ? `<p class="text-sm font-bold text-green-600 mb-0">&#9679; ${cfg.label}</p>` : ''}
-                <label class="block text-sm font-semibold text-gray-700 ${isHighlighted ? 'hidden' : ''}">${cfg.label}</label>
+                <label class="block text-sm font-semibold ${isHighlighted ? 'text-green-600' : 'text-gray-700'}">${isHighlighted ? '&#9679; ' : ''}${cfg.label}</label>
                 <select data-feature="${cfg.name}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     ${labels.map((lbl, i) => `<option value="${i + 1}" ${(i + 1) === value ? 'selected' : ''}>${lbl}</option>`).join('')}
                 </select>
@@ -295,13 +294,28 @@ function renderSliderGroup(category, container, onSliderChange) {
             });
         } else {
             const captionText = rawAvg != null ? `Baseline avg: ${rawAvg.toFixed(1)}` : '';
+
+            // Phantom baseline marker
+            const baselineVal = state.mode === 'individual' && state.baseline
+                ? state.baseline.features[cfg.name]
+                : state.mode === 'team' && state.teamAverages
+                    ? state.teamAverages[cfg.name]
+                    : null;
+            const phantomMarker = baselineVal != null ? (() => {
+                const pct = (baselineVal - cfg.min) / (cfg.max - cfg.min) * 100;
+                const leftCss = `calc(${pct.toFixed(2)}% + ${(10 - pct * 0.20).toFixed(2)}px)`;
+                return `<div class="slider-phantom" style="left:${leftCss}" title="Baseline: ${baselineVal}"></div>`;
+            })() : '';
+
             group.innerHTML = `
-                ${isHighlighted ? `<p class="text-sm font-bold text-green-600 mb-0">&#9679; ${cfg.label}</p>` : ''}
-                <div class="flex items-center justify-between">
-                    <label class="text-sm font-semibold text-gray-700 ${isHighlighted ? 'hidden' : ''}">${cfg.label}</label>
+                <div class="flex items-center justify-between" style="width:100%">
+                    <span class="text-sm font-semibold" style="color:${isHighlighted ? '#16a34a' : '#374151'}">${isHighlighted ? '&#9679; ' : ''}${cfg.label}</span>
                     <span class="slider-value">${value}</span>
                 </div>
-                <input type="range" data-feature="${cfg.name}" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${value}">
+                <div class="slider-track-wrap">
+                    <input type="range" data-feature="${cfg.name}" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${value}">
+                    ${phantomMarker}
+                </div>
                 ${captionText ? `<p class="slider-caption">${captionText}</p>` : ''}`;
 
             const slider = group.querySelector('input[type="range"]');

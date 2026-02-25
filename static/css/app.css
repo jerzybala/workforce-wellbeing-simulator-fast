@@ -168,6 +168,22 @@
     color: #16a34a;
 }
 
+/* ── Phantom baseline marker on slider ───────────── */
+.slider-track-wrap {
+    position: relative;
+    padding-bottom: 10px;
+}
+.slider-phantom {
+    position: absolute;
+    bottom: 0;
+    width: 4px;
+    height: 10px;
+    background: #f97316;
+    border-radius: 2px;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
 /* ── Caption ──────────────────────────────────────── */
 .slider-caption {
     font-size: 0.75rem;
