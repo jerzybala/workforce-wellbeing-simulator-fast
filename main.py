@@ -151,7 +151,7 @@ async def predict_batch(req: BatchPredictRequest):
 @app.post("/api/upload-csv")
 async def upload_csv(file: UploadFile = File(...), model_source: str = "models_west"):
     contents = await file.read()
-    df, error = validate_team_csv(io.BytesIO(contents), _features_config)
+    df, error, extra_col_averages = validate_team_csv(io.BytesIO(contents), _features_config)
     if error:
         return {"error": error}
 
@@ -181,6 +181,7 @@ async def upload_csv(file: UploadFile = File(...), model_source: str = "models_w
         baseline_teamp=baseline_teamp,
         baseline_individual_mhq=mhq_base.tolist(),
         baseline_individual_unproductive_days=unprod_base.tolist(),
+        extra_col_averages=extra_col_averages or None,
     )
 
 

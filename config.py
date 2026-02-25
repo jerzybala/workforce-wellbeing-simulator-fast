@@ -53,6 +53,22 @@ CEN_COLUMN_MAP = {
     "How often do you eat processed, packaged, or fast food that is not made from fresh ingredients?": "UPF_freq_ord",
 }
 
+EXTRA_COLUMNS = [
+    "Goal Alignment",
+    "Team Onboarding",
+    "Team Meetings",
+    "Professional Development Conversations",
+    "Feedback",
+    "After-Action Reviews",
+    "Conflict",
+    "Celebration and Recognition",
+    "Team Social Connection",
+    "Personal Circumstances (Joy or Adversity)",
+    "Failure",
+    "Leaving the Team",
+    "Handovers",
+]
+
 EXERCISE_TEXT_TO_ORD = {
     "Rarely/Never": 1,
     "Less than once a week": 2,

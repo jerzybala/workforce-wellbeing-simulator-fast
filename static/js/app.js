@@ -3,7 +3,8 @@ import { state, resetSliders, clearTeamData, clearBaseline } from './state.js';
 import {
     renderAll, renderOutcomeBanner, renderSliders, renderStatusBadges,
     renderModeToggle, renderHelpText, renderTeamUpload, renderActionBar,
-    renderOptimizationResult, renderSensitivityResult, renderModelDropdown, showSpinner, hideSpinner,
+    renderOptimizationResult, renderSensitivityResult, renderModelDropdown,
+    renderExtraColumnsChart, showSpinner, hideSpinner,
 } from './ui.js';
 import { generateReport } from './report.js';
 
@@ -137,6 +138,7 @@ function wireEvents() {
             individual_mhq: result.baseline_individual_mhq,
             individual_unprod: result.baseline_individual_unproductive_days,
         };
+        state.extraColAverages = result.extra_col_averages || null;
 
         for (const name of state.featureNames) {
             state.sliderValues[name] = state.teamAverages[name];
@@ -147,6 +149,7 @@ function wireEvents() {
         state.highlightedLevers = new Set();
 
         renderAll(onSliderChange);
+        renderExtraColumnsChart();
         await runPrediction();
     }
 
@@ -180,8 +183,18 @@ function wireEvents() {
     document.getElementById('clear-team-btn').addEventListener('click', () => {
         clearTeamData();
         document.getElementById('csv-upload').value = '';
+        document.getElementById('btn-moments').textContent = 'Moments';
         renderAll(onSliderChange);
+        renderExtraColumnsChart();
         renderOutcomeBanner();
+    });
+
+    // Moments toggle
+    document.getElementById('btn-moments').addEventListener('click', () => {
+        const chart = document.getElementById('extra-cols-chart');
+        const btn = document.getElementById('btn-moments');
+        const isHidden = chart.classList.toggle('hidden');
+        btn.textContent = isHidden ? 'Moments' : 'Hide Moments';
     });
 
     // Generate report

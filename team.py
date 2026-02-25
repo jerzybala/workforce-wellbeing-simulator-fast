@@ -4,30 +4,38 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from config import CEN_COLUMN_MAP, EXERCISE_TEXT_TO_ORD, UPF_TEXT_TO_ORD
+from config import CEN_COLUMN_MAP, EXERCISE_TEXT_TO_ORD, EXTRA_COLUMNS, UPF_TEXT_TO_ORD
 
 
 def validate_team_csv(
     file_bytes,
     features_config: List[Dict[str, Any]],
-) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
+) -> Tuple[Optional[pd.DataFrame], Optional[str], Dict[str, float]]:
     try:
         df = pd.read_csv(file_bytes)
     except Exception as exc:
-        return None, f"Could not read CSV: {exc}"
+        return None, f"Could not read CSV: {exc}", {}
 
     if len(df) == 0:
-        return None, "CSV file is empty."
+        return None, "CSV file is empty.", {}
     if len(df) > 10_000:
-        return None, f"CSV has {len(df):,} rows. Maximum supported is 10,000."
+        return None, f"CSV has {len(df):,} rows. Maximum supported is 10,000.", {}
 
     # Auto-rename CEN survey columns to app feature names
     df = df.rename(columns=CEN_COLUMN_MAP)
 
+    # Extract extra column averages before filtering
+    extra_col_averages: Dict[str, float] = {}
+    for col in EXTRA_COLUMNS:
+        if col in df.columns:
+            numeric = pd.to_numeric(df[col], errors="coerce")
+            if numeric.notna().any():
+                extra_col_averages[col] = float(numeric.mean(skipna=True))
+
     expected_cols = [cfg["name"] for cfg in features_config]
     missing = [c for c in expected_cols if c not in df.columns]
     if missing:
-        return None, f"Missing columns: {', '.join(missing)}"
+        return None, f"Missing columns: {', '.join(missing)}", extra_col_averages
 
     df = df[expected_cols].copy()
 
@@ -43,14 +51,14 @@ def validate_team_csv(
     if nan_count > 0:
         df = df.dropna()
         if len(df) == 0:
-            return None, "All rows contained non-numeric values and were dropped."
+            return None, "All rows contained non-numeric values and were dropped.", extra_col_averages
 
     cfg_map = {c["name"]: c for c in features_config}
     for col in expected_cols:
         lo, hi = cfg_map[col]["min"], cfg_map[col]["max"]
         df[col] = df[col].clip(lo, hi)
 
-    return df.reset_index(drop=True), None
+    return df.reset_index(drop=True), None, extra_col_averages
 
 
 def compute_team_averages(

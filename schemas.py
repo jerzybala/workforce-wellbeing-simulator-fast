@@ -96,3 +96,4 @@ class UploadResponse(BaseModel):
     baseline_teamp: float
     baseline_individual_mhq: List[float]
     baseline_individual_unproductive_days: List[float]
+    extra_col_averages: Optional[Dict[str, float]] = None

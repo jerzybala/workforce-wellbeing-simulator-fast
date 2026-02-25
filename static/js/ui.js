@@ -408,16 +408,13 @@ export function renderSensitivityResult() {
         const cat = cfg ? cfg.category : '';
         const sparkSvg = buildSparkline(f.curve, f.current, cfg, metric);
         const slopeMhq = f.slope_mhq;
-        const totalMhq = f.total_delta_mhq;
-        const totalUnprod = f.total_delta_unprod;
         const slopeClass = slopeMhq > 0 ? 'positive' : slopeMhq < 0 ? 'negative' : '';
-        const totalClass = totalMhq > 0 ? 'positive' : totalMhq < 0 ? 'negative' : '';
-        const prodDelta = -totalUnprod;
-        const prodClass = prodDelta > 0 ? 'positive' : prodDelta < 0 ? 'negative' : '';
+        const slopeProdVal = -f.slope_unprod;
+        const slopeProdClass = slopeProdVal > 0 ? 'positive' : slopeProdVal < 0 ? 'negative' : '';
 
-        const primarySlope = metric === 'mhq'
+        const metricDisplay = metric === 'mhq'
             ? `<div class="sens-slope ${slopeClass}">${sign(slopeMhq)}${fmt1(slopeMhq)} <span class="sens-unit">MHQ/unit</span></div>`
-            : `<div class="sens-slope ${prodClass}">${sign(prodDelta)}${fmt1(prodDelta)} <span class="sens-unit">days total</span></div>`;
+            : `<div class="sens-slope ${slopeProdClass}">${sign(slopeProdVal)}${fmt1(slopeProdVal)} <span class="sens-unit">days/unit</span></div>`;
 
         html += `
         <div class="sens-row">
@@ -428,8 +425,7 @@ export function renderSensitivityResult() {
             </div>
             <div class="sens-sparkline">${sparkSvg}</div>
             <div class="sens-metrics">
-                ${primarySlope}
-                <div class="sens-total">Total: <span class="${totalClass}">${sign(totalMhq)}${fmt1(totalMhq)} MHQ</span> · <span class="${prodClass}">${sign(prodDelta)}${fmt1(prodDelta)} days</span></div>
+                ${metricDisplay}
             </div>
         </div>`;
     });
@@ -542,6 +538,51 @@ export function showSpinner(text = 'Optimizing...') {
 
 export function hideSpinner() {
     el('spinner').classList.add('hidden');
+}
+
+// ── Extra Columns Chart ──────────────────────────────────────────────────
+
+export function renderExtraColumnsChart() {
+    const container = el('extra-cols-chart');
+    if (!container) return;
+
+    const momentsBtn = el('btn-moments');
+    const data = state.extraColAverages;
+    if (!data || Object.keys(data).length === 0) {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+        if (momentsBtn) momentsBtn.classList.add('hidden');
+        return;
+    }
+
+    // Show the toggle button
+    if (momentsBtn) momentsBtn.classList.remove('hidden');
+
+    // Sort descending by average
+    const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
+    const maxVal = sorted[0][1];
+
+    const bars = sorted.map(([name, avg]) => {
+        const widthPct = maxVal > 0 ? (avg / maxVal) * 100 : 0;
+        const avgFmt = avg.toFixed(1);
+        return `
+        <div class="moments-row">
+            <div class="moments-label" title="${name}">${name}</div>
+            <div class="moments-bar-track">
+                <div class="moments-bar" style="width:${widthPct.toFixed(1)}%"></div>
+            </div>
+            <div class="moments-value">${avgFmt}</div>
+        </div>`;
+    }).join('');
+
+    // Populate but keep hidden — toggled by button
+    container.innerHTML = `
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 border-b-2 border-gray-200 pb-2 mb-3">
+                Moments — Team Averages
+            </p>
+            <div class="moments-chart">${bars}</div>
+        </div>`;
 }
 
 // ── Render All ───────────────────────────────────────────────────────────

@@ -26,6 +26,7 @@ export const state = {
     teamRawAverages: null,
     teamBaseline: null,  // {mhq, unprod, teamq, individual_mhq, individual_unprod}
     teamPrediction: null,  // {avg_mhq, avg_unproductive_days, teamq, individual_mhq, individual_unproductive_days}
+    extraColAverages: null,  // {col_name: avg} for additional CSV columns
 
     // Optimization
     optimizationGoal: null,
@@ -67,6 +68,7 @@ export function clearTeamData() {
     state.teamRawAverages = null;
     state.teamBaseline = null;
     state.teamPrediction = null;
+    state.extraColAverages = null;
     state.optimizationGoal = null;
     state.optimizationResult = null;
     state.sensitivityResult = null;

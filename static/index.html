@@ -63,10 +63,14 @@
                 <div class="flex items-center gap-3">
                     <span id="team-loaded-text" class="text-sm font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-lg"></span>
                     <button id="btn-report" class="text-sm px-3 py-1.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors">Generate Report</button>
+                    <button id="btn-moments" class="hidden text-sm px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">Moments</button>
                     <button id="clear-team-btn" class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">Upload New Team Data (CSV)</button>
                 </div>
             </div>
         </div>
+
+        <!-- Extra Columns Chart (team mode, shown after CSV upload) -->
+        <div id="extra-cols-chart" class="hidden mb-4"></div>
 
         <!-- Outcome Banner -->
         <div id="outcome-banner" class="mb-4">
