@@ -239,8 +239,9 @@ function wireEvents() {
             // Block if all features are already at maximum — nothing to improve
             const allAtMax = state.featuresConfig.every(cfg => state.sliderValues[cfg.name] >= cfg.max);
             if (allAtMax) {
-                el('optimize-hint').textContent = 'All factors are at maximum — no room to optimize. Reset or adjust sliders first.';
-                el('optimize-hint').classList.remove('hidden');
+                const hint = document.getElementById('optimize-hint');
+                hint.textContent = 'All factors are at maximum — no room to optimize. Reset or adjust sliders first.';
+                hint.classList.remove('hidden');
                 return;
             }
 
