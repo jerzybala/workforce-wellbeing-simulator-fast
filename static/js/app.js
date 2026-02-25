@@ -45,6 +45,7 @@ async function init() {
     state.featuresConfig = configData.features;
     state.exerciseLabels = configData.exercise_labels;
     state.upfLabels = configData.upf_labels;
+    state.sleepLabels = configData.sleep_labels;
     state.categories = configData.categories;
 
     const modelsData = await fetchModels();
@@ -133,6 +134,7 @@ function wireEvents() {
             mhq: result.baseline_mhq,
             unprod: result.baseline_unproductive_days,
             teamq: result.baseline_teamq,
+            teamp: result.baseline_teamp,
             individual_mhq: result.baseline_individual_mhq,
             individual_unprod: result.baseline_individual_unproductive_days,
         };

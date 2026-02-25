@@ -16,7 +16,7 @@ def load_all_models() -> None:
         path = source_info["path"]
         mhq_path = path / "mhq_model.pkl"
         unprod_path = path / "unproductive_days_model.pkl"
-        entry = {"mhq": None, "unprod": None, "shap_weights": None}
+        entry = {"mhq": None, "unprod": None, "shap_weights": None, "shap_weights_unprod": None}
         if mhq_path.exists():
             entry["mhq"] = joblib.load(mhq_path)
         if unprod_path.exists():
@@ -25,6 +25,10 @@ def load_all_models() -> None:
         if shap_path.exists():
             with open(shap_path) as f:
                 entry["shap_weights"] = json.load(f)
+        shap_unprod_path = path / "shap_weights_unprod.json"
+        if shap_unprod_path.exists():
+            with open(shap_unprod_path) as f:
+                entry["shap_weights_unprod"] = json.load(f)
         _models[source_id] = entry
 
 
@@ -36,6 +40,11 @@ def get_models(source_id: str) -> tuple:
 def get_shap_weights(source_id: str) -> Optional[Dict[str, float]]:
     entry = _models.get(source_id, {})
     return entry.get("shap_weights")
+
+
+def get_shap_weights_unprod(source_id: str) -> Optional[Dict[str, float]]:
+    entry = _models.get(source_id, {})
+    return entry.get("shap_weights_unprod")
 
 
 def get_models_status() -> Dict[str, Dict[str, bool]]:

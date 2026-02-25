@@ -9,6 +9,7 @@ export const state = {
     featuresConfig: [],
     exerciseLabels: [],
     upfLabels: [],
+    sleepLabels: [],
     categories: {},
     modelSources: [],
 
@@ -36,6 +37,7 @@ export const state = {
 
     // Sensitivity analysis
     sensitivityResult: null,  // {features: [{name, current, curve, slope_mhq, ...}]}
+    sensitivityMetric: 'mhq',  // 'mhq' | 'unprod'
 };
 
 export function subscribe(fn) {

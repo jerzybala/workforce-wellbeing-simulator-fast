@@ -10,7 +10,7 @@ from team import apply_team_deltas
 
 
 def candidate_levels(name: str, current: float, cfg: Dict[str, Any]) -> List[float]:
-    if name == "exercise_freq_ord" or name == "UPF_freq_ord":
+    if name == "exercise_freq_ord" or name == "UPF_freq_ord" or name == "sleep_freq_ord":
         return sorted({float(current), float(cfg.get("max", 5))})
     max_v = cfg.get("max", 10)
     cap7 = max(7.0, float(current))

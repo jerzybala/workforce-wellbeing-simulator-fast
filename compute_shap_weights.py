@@ -1,9 +1,9 @@
-"""Pre-compute mean |SHAP| weights for each model source's MHQ model.
+"""Pre-compute mean |SHAP| weights for each model source's MHQ and productivity models.
 
 Run once from the app_ui_fast/ directory:
     python compute_shap_weights.py
 
-Produces shap_weights.json in each model directory.
+Produces shap_weights.json and shap_weights_unprod.json in each model directory.
 """
 
 from __future__ import annotations
@@ -36,13 +36,13 @@ def generate_synthetic_data() -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-def compute_weights(model_path: Path) -> dict[str, float] | None:
-    mhq_path = model_path / "mhq_model.pkl"
-    if not mhq_path.exists():
-        print(f"  Skipping {model_path.name}: mhq_model.pkl not found")
+def _compute_weights_for_model(model_path: Path, pkl_name: str) -> dict[str, float] | None:
+    pkl = model_path / pkl_name
+    if not pkl.exists():
+        print(f"  Skipping {model_path.name}: {pkl_name} not found")
         return None
 
-    model = joblib.load(mhq_path)
+    model = joblib.load(pkl)
     pre_model = model[:-1]  # imputer + restore_cols
     booster = model.named_steps["model"]
 
@@ -55,23 +55,35 @@ def compute_weights(model_path: Path) -> dict[str, float] | None:
     mean_abs = np.abs(shap_values).mean(axis=0)
     feature_names = list(X_prepared.columns) if hasattr(X_prepared, "columns") else FEATURE_NAMES
 
-    weights = {name: round(float(val), 6) for name, val in zip(feature_names, mean_abs)}
-    return weights
+    return {name: round(float(val), 6) for name, val in zip(feature_names, mean_abs)}
+
+
+def compute_weights(model_path: Path) -> dict[str, float] | None:
+    return _compute_weights_for_model(model_path, "mhq_model.pkl")
+
+
+def compute_weights_unprod(model_path: Path) -> dict[str, float] | None:
+    return _compute_weights_for_model(model_path, "unproductive_days_model.pkl")
 
 
 def main():
     for source_id, source_info in MODEL_SOURCES.items():
         model_path = source_info["path"]
         print(f"Processing {source_id} ({model_path}) ...")
-        weights = compute_weights(model_path)
-        if weights is None:
-            continue
 
-        out_path = model_path / "shap_weights.json"
-        with open(out_path, "w") as f:
-            json.dump(weights, f, indent=2)
-        print(f"  Saved {out_path}")
-        print(f"  Weights: {weights}")
+        weights = compute_weights(model_path)
+        if weights is not None:
+            out_path = model_path / "shap_weights.json"
+            with open(out_path, "w") as f:
+                json.dump(weights, f, indent=2)
+            print(f"  Saved {out_path}")
+
+        weights_unprod = compute_weights_unprod(model_path)
+        if weights_unprod is not None:
+            out_path = model_path / "shap_weights_unprod.json"
+            with open(out_path, "w") as f:
+                json.dump(weights_unprod, f, indent=2)
+            print(f"  Saved {out_path}")
 
 
 if __name__ == "__main__":

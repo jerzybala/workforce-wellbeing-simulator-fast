@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from config import CEN_COLUMN_MAP, EXERCISE_TEXT_TO_ORD, UPF_TEXT_TO_ORD
+from config import CEN_COLUMN_MAP, EXERCISE_TEXT_TO_ORD, SLEEP_TEXT_TO_ORD, UPF_TEXT_TO_ORD
 
 
 def validate_team_csv(
@@ -36,6 +36,8 @@ def validate_team_csv(
         df["exercise_freq_ord"] = df["exercise_freq_ord"].map(EXERCISE_TEXT_TO_ORD)
     if "UPF_freq_ord" in df.columns and df["UPF_freq_ord"].dtype == object:
         df["UPF_freq_ord"] = df["UPF_freq_ord"].map(UPF_TEXT_TO_ORD)
+    if "sleep_freq_ord" in df.columns and df["sleep_freq_ord"].dtype == object:
+        df["sleep_freq_ord"] = df["sleep_freq_ord"].map(SLEEP_TEXT_TO_ORD)
 
     for col in expected_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce")

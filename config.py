@@ -33,6 +33,13 @@ UPF_LABELS = [
     "Rarely/Never",
 ]
 
+SLEEP_LABELS = [
+    "Hardly ever",
+    "Some of the time",
+    "Most of the time",
+    "All of the time",
+]
+
 CATEGORY_LABELS = {
     "work": "Work Environment",
     "lifestyle": "Lifestyle Factors",
@@ -51,6 +58,7 @@ CEN_COLUMN_MAP = {
     "Please rate how you perceive your work is valued and recognized": "work_recognition",
     "How regularly do you engage in physical exercise (30 minutes or more)?": "exercise_freq_ord",
     "How often do you eat processed, packaged, or fast food that is not made from fresh ingredients?": "UPF_freq_ord",
+    "In general, I get as much sleep as I need:": "sleep_freq_ord",
 }
 
 EXERCISE_TEXT_TO_ORD = {
@@ -72,4 +80,11 @@ UPF_TEXT_TO_ORD = {
     "A few times a month": 4,
     "Rarely/Never": 5,
     "Rarely/never": 5,
+}
+
+SLEEP_TEXT_TO_ORD = {
+    "Hardly ever": 1,
+    "Some of the time": 2,
+    "Most of the time": 3,
+    "All of the time": 4,
 }

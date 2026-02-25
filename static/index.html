@@ -28,6 +28,10 @@
             <details open class="mb-2">
                 <summary class="text-sm font-semibold text-gray-700 cursor-pointer select-none">How to Use This App</summary>
                 <div id="help-text" class="text-xs text-gray-600 mt-2 space-y-2"></div>
+                <a href="/static/user_guide.html" target="_blank" class="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm1 12H7V7h2v5zM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+                    Full User Guide
+                </a>
             </details>
         </div>
     </aside>
@@ -58,26 +62,6 @@
             <div id="team-loaded-info" class="hidden mt-2">
                 <div class="flex items-center gap-3">
                     <span id="team-loaded-text" class="text-sm font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-lg"></span>
-                    <div id="teamq-display" class="teamq-container hidden">
-                        <div class="teamq-header">
-                            <span class="teamq-label">TeamQ</span>
-                            <button id="teamq-info-btn" class="teamq-info-btn" type="button" title="About TeamQ">
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm1 12H7V7h2v5zM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
-                            </button>
-                            <span id="teamq-score" class="teamq-score"></span>
-                            <span id="teamq-delta" class="teamq-delta"></span>
-                        </div>
-                        <div class="teamq-bar-track">
-                            <div id="teamq-bar-fill" class="teamq-bar-fill"></div>
-                        </div>
-                        <div id="teamq-tooltip" class="teamq-tooltip hidden">
-                            TeamQ (Team Quality) represents the overall wellbeing profile of your
-                            team members. It is a composite score (0&ndash;100) that aggregates all
-                            work environment and lifestyle factors across the team, weighted by
-                            their importance to the Mental Health Quotient (MHQ). Higher scores
-                            indicate better overall team conditions.
-                        </div>
-                    </div>
                     <button id="btn-report" class="text-sm px-3 py-1.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors">Generate Report</button>
                     <button id="clear-team-btn" class="text-sm px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">Upload New Team Data (CSV)</button>
                 </div>
@@ -90,7 +74,48 @@
                 <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Workforce Wellbeing &amp; Productivity Simulator</h1>
                 <p id="banner-subtitle" class="text-sm text-gray-500 mt-1">Explore how work environment and lifestyle factors impact mental health and productivity.</p>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <!-- Team composite scores (team mode only) -->
+            <div id="team-scores-row" class="grid grid-cols-2 gap-4 mb-4 hidden">
+                <div class="outcome-card outcome-card-teamq rounded-2xl p-6 text-white relative">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-lg font-semibold opacity-95">TeamQ &mdash; Wellbeing</span>
+                        <button id="teamq-info-btn" class="teamq-info-btn" type="button" title="About TeamQ">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm1 12H7V7h2v5zM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+                        </button>
+                    </div>
+                    <div class="text-sm opacity-80">Composite index weighted by MHQ drivers</div>
+                    <div id="teamq-value" class="text-6xl font-extrabold leading-none mt-3 mb-1">&mdash;</div>
+                    <div id="teamq-pct" class="text-xl font-medium opacity-90"></div>
+                    <div class="text-base opacity-70 mt-1">/ 100</div>
+                    <div id="teamq-tooltip" class="teamq-tooltip hidden">
+                        TeamQ (Team Quality) represents the overall wellbeing profile of your
+                        team members. It is a composite score (0&ndash;100) that aggregates all
+                        work environment and lifestyle factors across the team, weighted by
+                        their importance to the Mental Health Quotient (MHQ). Higher scores
+                        indicate better overall team conditions.
+                    </div>
+                </div>
+                <div class="outcome-card outcome-card-teamp rounded-2xl p-6 text-white relative">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-lg font-semibold opacity-95">TeamP &mdash; Productivity</span>
+                        <button id="teamp-info-btn" class="teamq-info-btn" type="button" title="About TeamP">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm1 12H7V7h2v5zM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+                        </button>
+                    </div>
+                    <div class="text-sm opacity-80">Composite index weighted by productivity drivers</div>
+                    <div id="teamp-value" class="text-6xl font-extrabold leading-none mt-3 mb-1">&mdash;</div>
+                    <div id="teamp-pct" class="text-xl font-medium opacity-90"></div>
+                    <div class="text-base opacity-70 mt-1">/ 100</div>
+                    <div id="teamp-tooltip" class="teamq-tooltip hidden">
+                        TeamP (Team Productivity) reflects how favourable the team&rsquo;s conditions
+                        are for minimising unproductive days. It uses the same composite formula as TeamQ
+                        but weighted by each feature&rsquo;s importance to the Unproductive Days model.
+                        Higher scores indicate conditions that support greater productivity.
+                    </div>
+                </div>
+            </div>
+            <!-- Individual/baseline outcome cards -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
                 <div id="mhq-card" class="outcome-card outcome-card-mhq rounded-2xl p-6 text-white relative overflow-hidden">
                     <div class="card-circle"></div>
                     <div id="mhq-label" class="text-lg font-semibold opacity-95">Mental Health Quotient (MHQ)</div>

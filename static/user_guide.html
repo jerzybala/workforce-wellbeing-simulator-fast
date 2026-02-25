@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workforce Simulator — User Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: #1f2937;
+      line-height: 1.7;
+      margin: 0;
+      background: #f9fafb;
+    }
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    nav {
+      width: 230px;
+      min-width: 230px;
+      background: #1e2a3a;
+      color: #cdd9e5;
+      padding: 32px 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .nav-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7a9aba;
+      padding: 0 20px 12px;
+      border-bottom: 1px solid #2e3f52;
+      margin-bottom: 12px;
+    }
+    nav a {
+      display: block;
+      padding: 6px 20px;
+      color: #cdd9e5;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    nav a:hover { color: #fff; background: #2e3f52; }
+    nav a.sub { padding-left: 34px; font-size: 0.82rem; color: #9ab4cb; }
+    .nav-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 20px 16px;
+      color: #7a9aba;
+      text-decoration: none;
+      font-size: 0.8rem;
+      border-bottom: 1px solid #2e3f52;
+      margin-bottom: 12px;
+    }
+    .nav-back:hover { color: #cdd9e5; }
+
+    /* Main */
+    main {
+      flex: 1;
+      padding: 48px 56px;
+      max-width: 860px;
+    }
+    h1 { font-size: 1.85rem; margin-bottom: 4px; color: #111827; }
+    .meta { color: #6b7280; font-size: 0.88rem; margin-bottom: 40px; }
+    h2 {
+      font-size: 1.2rem;
+      margin-top: 52px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+      color: #1e2a3a;
+    }
+    h3 { font-size: 1rem; margin-top: 26px; color: #374151; }
+    p { margin: 10px 0; }
+    ul, ol { margin: 10px 0; padding-left: 22px; }
+    li { margin: 6px 0; }
+
+    /* Step boxes */
+    .steps { margin: 16px 0; }
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin: 12px 0;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .step-num {
+      min-width: 28px;
+      height: 28px;
+      background: #1e2a3a;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-body { flex: 1; }
+    .step-body strong { color: #111827; }
+
+    /* Score cards */
+    .score-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .score-card {
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: #fff;
+    }
+    .score-card-blue  { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .score-card-green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .score-card-purple{ background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+    .score-card-teal  { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+    .score-card-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+    .score-card-desc  { font-size: 0.83rem; opacity: 0.88; line-height: 1.5; }
+
+    /* Callout boxes */
+    .callout {
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    .callout-blue  { background: #eff6ff; border-left: 4px solid #3b82f6; }
+    .callout-green { background: #f0fdf4; border-left: 4px solid #16a34a; }
+    .callout-amber { background: #fffbeb; border-left: 4px solid #f59e0b; }
+    .callout-gray  { background: #f9fafb; border-left: 4px solid #9ca3af; }
+    .callout-title { font-weight: 700; margin-bottom: 4px; color: #111827; }
+
+    /* Feature table */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.87rem;
+      margin: 14px 0 20px;
+    }
+    th {
+      background: #f3f4f6;
+      text-align: left;
+      padding: 8px 12px;
+      border: 1px solid #e5e7eb;
+      font-weight: 600;
+      color: #374151;
+    }
+    td { padding: 7px 12px; border: 1px solid #e5e7eb; color: #374151; }
+    tr:nth-child(even) td { background: #f9fafb; }
+
+    /* Importance bar */
+    .imp-row { display: flex; align-items: center; gap: 10px; margin: 5px 0; font-size: 0.84rem; }
+    .imp-label { width: 170px; text-align: right; color: #4b5563; flex-shrink: 0; }
+    .imp-bar-wrap { flex: 1; background: #e5e7eb; border-radius: 4px; height: 12px; }
+    .imp-bar-mhq   { height: 12px; border-radius: 4px; background: linear-gradient(90deg, #818cf8, #6366f1); }
+    .imp-bar-prod  { height: 12px; border-radius: 4px; background: linear-gradient(90deg, #5eead4, #0d9488); }
+    .imp-pct { width: 44px; font-size: 0.78rem; color: #6b7280; }
+
+    hr { border: none; border-top: 1px solid #e5e7eb; margin: 40px 0; }
+    .version { font-size: 0.78rem; color: #9ca3af; margin-top: 60px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+    .tag {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #dbeafe;
+      color: #1d4ed8;
+      margin-left: 4px;
+    }
+    .tag-team   { background: #ede9fe; color: #5b21b6; }
+    .tag-indiv  { background: #dcfce7; color: #166534; }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <nav>
+    <a class="nav-back" href="/">&#8592; Back to App</a>
+    <div class="nav-title">User Guide</div>
+    <a href="#what-is-this">What is this tool?</a>
+    <a href="#scores">Understanding the scores</a>
+    <a class="sub" href="#mhq">MHQ</a>
+    <a class="sub" href="#productive-days">Productive Days</a>
+    <a class="sub" href="#teamq-p">TeamQ &amp; TeamP</a>
+    <a href="#inputs">The 12 input factors</a>
+    <a class="sub" href="#work-factors">Work factors</a>
+    <a class="sub" href="#lifestyle-factors">Lifestyle factors</a>
+    <a href="#individual-mode">Individual mode</a>
+    <a href="#team-mode">Team mode</a>
+    <a href="#optimize">Optimization</a>
+    <a href="#sensitivity">Sensitivity analysis</a>
+    <a href="#model-source">Model source</a>
+    <a href="#csv-format">CSV format</a>
+  </nav>
+
+  <main>
+    <h1>Workforce Wellbeing &amp; Productivity Simulator</h1>
+    <div class="meta">User Guide &nbsp;·&nbsp; Version 2026-02-24</div>
+
+    <!-- WHAT IS THIS -->
+    <h2 id="what-is-this">What is this tool?</h2>
+    <p>
+      The Workforce Simulator lets you explore how <strong>work environment</strong> and
+      <strong>lifestyle factors</strong> affect two important outcomes for your team:
+      mental health and workplace productivity.
+    </p>
+    <p>
+      You move sliders to describe conditions — things like how much recognition people
+      receive, how well they sleep, how often they exercise — and the simulator instantly
+      shows you the predicted impact on mental health and productive days.
+    </p>
+    <p>
+      The simulator is powered by machine learning models trained on large-scale workforce
+      survey data. It is a <strong>what-if exploration tool</strong>, not a diagnostic
+      instrument. Use it to compare scenarios, identify priority areas, and build the
+      case for workplace interventions.
+    </p>
+
+    <div class="callout callout-amber">
+      <div class="callout-title">Two ways to use it</div>
+      <strong>Individual mode</strong> — explore how changes affect one person's scores.
+      Great for understanding the model and testing scenarios.<br><br>
+      <strong>Team mode</strong> — upload a CSV with your team's survey responses. The
+      simulator uses your real team data as a baseline and shows how uniform interventions
+      would move the whole team's outcomes.
+    </div>
+
+
+    <!-- SCORES -->
+    <h2 id="scores">Understanding the scores</h2>
+
+    <div class="score-grid">
+      <div class="score-card score-card-blue">
+        <div class="score-card-title">Mental Health Quotient (MHQ)</div>
+        <div class="score-card-desc">0–100 scale. Higher is better. Reflects overall mental wellbeing based on work and lifestyle conditions.</div>
+      </div>
+      <div class="score-card score-card-green">
+        <div class="score-card-title">Productive Days (per month)</div>
+        <div class="score-card-desc">Shows the change in days lost to low productivity. Positive = more productive days gained.</div>
+      </div>
+      <div class="score-card score-card-purple">
+        <div class="score-card-title">TeamQ <span style="opacity:0.7;font-weight:400">— Wellbeing index</span></div>
+        <div class="score-card-desc">0–100 composite score reflecting your team's overall wellbeing conditions. Weighted by what matters most for mental health.</div>
+      </div>
+      <div class="score-card score-card-teal">
+        <div class="score-card-title">TeamP <span style="opacity:0.7;font-weight:400">— Productivity index</span></div>
+        <div class="score-card-desc">0–100 composite score reflecting your team's productivity conditions. Weighted by what matters most for reducing unproductive days.</div>
+      </div>
+    </div>
+
+    <h3 id="mhq">Mental Health Quotient (MHQ)</h3>
+    <p>
+      MHQ is a 0–100 score where <strong>higher is better</strong>. It is shown as a
+      <em>change from your baseline</em> — so +5.2 means conditions have improved
+      enough to predict a 5.2 point increase in mental health scores.
+    </p>
+    <p>
+      In team mode the blue card shows the <strong>average</strong> MHQ change across
+      all team members, with a range showing the spread from the person with the
+      smallest gain to the largest.
+    </p>
+
+    <h3 id="productive-days">Productive Days (per month)</h3>
+    <p>
+      The green card shows the predicted change in <strong>productive working days per
+      month</strong>. A positive number (e.g. +0.8 days) means the simulated
+      conditions would be expected to recover nearly one full productive day per person
+      per month compared to the baseline.
+    </p>
+    <p>
+      The card turns amber when the model predicts more than 3 unproductive days per
+      month under the current conditions — a flag worth paying attention to.
+    </p>
+
+    <h3 id="teamq-p">TeamQ and TeamP <span class="tag tag-team">Team mode only</span></h3>
+    <p>
+      These two scores only appear after you upload a team CSV. They give you an
+      at-a-glance summary of your team's overall conditions on a 0–100 scale —
+      <strong>100 means every factor is at its best possible level</strong>, 0 means
+      every factor is at its worst.
+    </p>
+    <p>
+      <strong>Why two scores?</strong> The factors that most influence mental health are
+      not identical to those that most influence productivity:
+    </p>
+    <ul>
+      <li><strong>TeamQ (purple)</strong> weights factors by their importance to mental health — sleep quality, purpose at work, and diet carry the most weight.</li>
+      <li><strong>TeamP (teal)</strong> weights factors by their importance to productivity — purpose at work, sleep, and control of time carry the most weight.</li>
+    </ul>
+    <p>
+      At a typical baseline the two scores are very close. They diverge noticeably when
+      you adjust factors like <em>Control of Time</em> (much more important for
+      productivity) or <em>Ultra-processed Food</em> (much more important for mental
+      health).
+    </p>
+    <p>
+      As you move sliders, both scores update live to reflect the current simulated
+      conditions.
+    </p>
+
+
+    <!-- INPUTS -->
+    <h2 id="inputs">The 12 input factors</h2>
+    <p>
+      All factors come from a workforce wellbeing survey. Each slider in the app
+      corresponds to one of these factors.
+    </p>
+
+    <h3 id="work-factors">Work environment factors <span style="color:#6b7280;font-weight:400;font-size:0.9rem">(rated 1–9)</span></h3>
+    <p>Each factor is rated on a <strong>1 to 9 scale</strong>: 1 = very negative experience, 9 = very positive experience.</p>
+
+    <table>
+      <thead><tr><th>Factor</th><th>What it measures</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Control of Time</strong></td><td>How much flexibility and control you have over when and how you work</td></tr>
+        <tr><td><strong>Job Security</strong></td><td>How safe and secure you feel in your role</td></tr>
+        <tr><td><strong>Work Amount</strong></td><td>Whether the volume of work feels manageable</td></tr>
+        <tr><td><strong>Purpose at Work</strong></td><td>Whether your work feels meaningful and worthwhile</td></tr>
+        <tr><td><strong>Learning at Work</strong></td><td>Opportunities to grow and develop your skills</td></tr>
+        <tr><td><strong>Colleagues Support</strong></td><td>Quality of relationships and support from co-workers</td></tr>
+        <tr><td><strong>Manager Support</strong></td><td>Quality of your relationship with your direct manager</td></tr>
+        <tr><td><strong>Feeling Informed</strong></td><td>Whether you feel in the loop about what is happening in your team</td></tr>
+        <tr><td><strong>Recognition</strong></td><td>Whether you feel valued and appreciated for your contributions</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="lifestyle-factors">Lifestyle factors</h3>
+    <p>These are ordinal categories rather than a numeric rating:</p>
+
+    <table>
+      <thead><tr><th>Factor</th><th>Scale</th><th>Options (1 = worst, highest = best)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Exercise Frequency</strong></td>
+          <td>1–5</td>
+          <td>1 Rarely/Never → 2 Less than once a week → 3 Once a week → 4 Few days a week → 5 Every day</td>
+        </tr>
+        <tr>
+          <td><strong>Ultra-processed Food</strong></td>
+          <td>1–5</td>
+          <td>1 Several times a day → 2 Once a day → 3 Few days a week → 4 A few times a month → 5 Rarely/Never</td>
+        </tr>
+        <tr>
+          <td><strong>Sleep Quality</strong></td>
+          <td>1–4</td>
+          <td>1 Hardly ever → 2 Some of the time → 3 Most of the time → 4 All of the time</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-gray">
+      <div class="callout-title">Which factors matter most?</div>
+      For <strong>mental health (MHQ)</strong>, the top drivers are: Sleep quality, Purpose at work, Colleagues support, Recognition, and Exercise frequency.<br><br>
+      For <strong>productivity</strong>, the top drivers are: Purpose at work, Sleep quality, Control of time, Recognition, and Exercise frequency.<br><br>
+      Sleep and purpose feature at the top of both lists — improving them has the broadest positive impact.
+    </div>
+
+
+    <!-- INDIVIDUAL MODE -->
+    <h2 id="individual-mode">Individual mode <span class="tag tag-indiv">Individual</span></h2>
+    <p>Use individual mode to explore scenarios for a single person.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Set the sliders to reflect current conditions.</strong><br>
+          Move each slider to match the person's actual situation — their sleep quality, exercise habits, workplace experience, and so on.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Click "Set Baseline".</strong><br>
+          This saves the current slider positions as your reference point. The MHQ and Productive Days cards will now show 0 (no change yet).
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Move sliders to simulate a change.</strong><br>
+          For example, increase Recognition from 4 to 8. The score cards update instantly to show how much MHQ and productive days would change compared to your baseline.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Use Optimization or Sensitivity to find the best levers.</strong><br>
+          Not sure where to focus? Click MHQ, Productivity, or Balanced to let the simulator find the best 2 factors to improve. Or click Sensitivity to see how each factor affects outcomes across its full range.
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-blue">
+      <strong>Tip:</strong> Click "Set Baseline" again to clear the baseline and start fresh.
+      "Reset Defaults" returns all sliders to their default middle values without clearing the baseline.
+    </div>
+
+
+    <!-- TEAM MODE -->
+    <h2 id="team-mode">Team mode <span class="tag tag-team">Team</span></h2>
+    <p>Team mode uses your team's real survey data as the baseline.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Switch to Team mode</strong> using the toggle at the top of the page.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Upload your team CSV.</strong><br>
+          The file must have one row per team member and columns matching the 12 survey factors. See <a href="#csv-format">CSV format</a> below. After upload, the sliders are set to your team's actual averages, and TeamQ/TeamP scores appear.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Move sliders to simulate interventions.</strong><br>
+          Each slider now represents a <em>uniform shift</em> applied to every team member. For example, moving Recognition from 5 to 7 simulates what would happen if every team member's recognition score improved by the same relative amount.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Read the results.</strong><br>
+          The MHQ and Productive Days cards show average changes across the whole team, plus the range from the person benefiting least to most. TeamQ and TeamP update to reflect the new simulated conditions.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>Generate a report.</strong><br>
+          Click "Generate Report" to download a PDF summary of the team's baseline profile and key recommendations.
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-green">
+      <strong>Max All:</strong> The "Max All" button sets every slider to its maximum value —
+      useful for seeing the theoretical best-case outcome for your team if all factors
+      were improved to their highest levels.
+    </div>
+
+
+    <!-- OPTIMIZATION -->
+    <h2 id="optimize">Optimization</h2>
+    <p>
+      The optimizer answers the question: <em>"Given that I can only change a few
+      things, which ones will make the biggest difference?"</em>
+    </p>
+    <p>
+      Before running optimization, you need a baseline set (individual mode) or team
+      data loaded (team mode). Then select how many factors to change (1–4, default 2)
+      and click one of the three goals:
+    </p>
+    <table>
+      <thead><tr><th>Goal</th><th>What it maximises</th></tr></thead>
+      <tbody>
+        <tr><td><strong>MHQ</strong></td><td>Improvement in mental health score</td></tr>
+        <tr><td><strong>Productivity</strong></td><td>Reduction in unproductive days</td></tr>
+        <tr><td><strong>Balanced</strong></td><td>Both (weighted 60% MHQ, 40% productivity)</td></tr>
+      </tbody>
+    </table>
+    <p>
+      After running, the simulator highlights the recommended factors in green on the
+      sliders and shows the predicted improvement. The sliders move to the suggested
+      values automatically so you can see the effect immediately.
+    </p>
+
+    <div class="callout callout-blue">
+      <strong>How does it work?</strong> The optimizer tests all possible combinations
+      of the chosen number of factors, evaluating every meaningful level for each one.
+      It picks the combination with the highest predicted improvement. With k=2 and
+      12 factors this is 66 combinations — fast and exhaustive.
+    </div>
+
+
+    <!-- SENSITIVITY -->
+    <h2 id="sensitivity">Sensitivity analysis</h2>
+    <p>
+      Sensitivity analysis answers: <em>"What would happen to outcomes if I pushed each
+      factor from its current level all the way to its maximum?"</em>
+    </p>
+    <p>
+      Click the <strong>Sensitivity</strong> button (requires a baseline or team data)
+      to open a ranked list of all 12 factors. For each factor you see:
+    </p>
+    <ul>
+      <li>A sparkline curve showing how outcomes change as the factor moves from its current value to its maximum</li>
+      <li>The slope — how many MHQ points (or productive days) you'd gain per unit increase</li>
+      <li>The total gain — the full change from current to maximum</li>
+    </ul>
+    <p>
+      Use the <strong>MHQ / Productive Days toggle</strong> at the top of the panel to
+      switch which outcome is used for ranking and curve display.
+    </p>
+    <p>
+      Sensitivity is most useful for understanding which factors have <strong>room to
+      grow</strong> given current conditions. A factor already at a high level won't
+      show much remaining headroom even if it's inherently important.
+    </p>
+
+
+    <!-- MODEL SOURCE -->
+    <h2 id="model-source">Model source</h2>
+    <p>
+      The "Model Source" dropdown in the sidebar lets you choose which trained model to
+      use for predictions. The models differ in which survey population they were trained on:
+    </p>
+    <table>
+      <thead><tr><th>Model</th><th>Who it represents</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Western Countries</strong> (default)</td><td>Western Europe, USA, Canada, Australia — approx. 5,800 respondents</td></tr>
+        <tr><td><strong>Western Age &gt;45</strong></td><td>Same countries, respondents over 45</td></tr>
+        <tr><td><strong>Western Age ≤45</strong></td><td>Same countries, respondents 45 and under</td></tr>
+        <tr><td><strong>All Data</strong></td><td>Global dataset — approx. 32,000 respondents</td></tr>
+      </tbody>
+    </table>
+    <p>
+      For most teams in Western Europe or North America, the default <strong>Western
+      Countries</strong> model is the most appropriate choice. If your team is
+      predominantly older or younger, the age-segmented models may give more accurate
+      predictions.
+    </p>
+
+
+    <!-- CSV FORMAT -->
+    <h2 id="csv-format">CSV format for team upload</h2>
+    <p>
+      Your CSV should have <strong>one row per team member</strong> and one column per
+      factor. The maximum size is 10,000 rows.
+    </p>
+    <p>
+      Column headers can be either the survey question text or the short feature names.
+      The required columns are:
+    </p>
+    <table>
+      <thead><tr><th>Column header accepted</th><th>Factor</th><th>Valid values</th></tr></thead>
+      <tbody>
+        <tr><td><code>work_control_time</code></td><td>Control of Time</td><td>1–9</td></tr>
+        <tr><td><code>work_control_job</code></td><td>Job Security</td><td>1–9</td></tr>
+        <tr><td><code>work_amount</code></td><td>Work Amount</td><td>1–9</td></tr>
+        <tr><td><code>work_purpose</code></td><td>Purpose at Work</td><td>1–9</td></tr>
+        <tr><td><code>work_learning</code></td><td>Learning at Work</td><td>1–9</td></tr>
+        <tr><td><code>work_colleagues</code></td><td>Colleagues Support</td><td>1–9</td></tr>
+        <tr><td><code>work_manager</code></td><td>Manager Support</td><td>1–9</td></tr>
+        <tr><td><code>work_informed</code></td><td>Feeling Informed</td><td>1–9</td></tr>
+        <tr><td><code>work_recognition</code></td><td>Recognition</td><td>1–9</td></tr>
+        <tr><td><code>exercise_freq_ord</code></td><td>Exercise Frequency</td><td>1–5</td></tr>
+        <tr><td><code>UPF_freq_ord</code></td><td>Ultra-processed Food</td><td>1–5</td></tr>
+        <tr><td><code>sleep_freq_ord</code></td><td>Sleep Quality</td><td>1–4</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-amber">
+      <strong>Missing values:</strong> Rows with any missing values in the required
+      columns are dropped automatically. A warning will tell you how many rows were
+      removed. Aim for complete data for the most accurate team representation.
+    </div>
+
+    <div class="version">User Guide &nbsp;·&nbsp; Workforce Wellbeing &amp; Productivity Simulator &nbsp;·&nbsp; v2026-02-24</div>
+  </main>
+</div>
+</body>
+</html>

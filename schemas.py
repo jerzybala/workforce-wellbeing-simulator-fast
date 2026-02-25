@@ -27,6 +27,7 @@ class BatchPredictResponse(BaseModel):
     avg_mhq: float
     avg_unproductive_days: float
     teamq: float
+    teamp: float
     individual_mhq: List[float]
     individual_unproductive_days: List[float]
 
@@ -92,5 +93,6 @@ class UploadResponse(BaseModel):
     baseline_mhq: float
     baseline_unproductive_days: float
     baseline_teamq: float
+    baseline_teamp: float
     baseline_individual_mhq: List[float]
     baseline_individual_unproductive_days: List[float]

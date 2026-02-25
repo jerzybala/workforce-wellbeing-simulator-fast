@@ -18,9 +18,10 @@ from config import (
     EXERCISE_LABELS,
     FEATURE_CONFIG_PATH,
     MODEL_SOURCES,
+    SLEEP_LABELS,
     UPF_LABELS,
 )
-from models_loader import get_models, get_models_status, get_shap_weights, load_all_models
+from models_loader import get_models, get_models_status, get_shap_weights, get_shap_weights_unprod, load_all_models
 from optimization import search_best_levers, search_best_levers_team
 from prediction import predict_targets, predict_targets_batch
 from schemas import (
@@ -86,6 +87,7 @@ async def features_config():
         "features": _features_config,
         "exercise_labels": EXERCISE_LABELS,
         "upf_labels": UPF_LABELS,
+        "sleep_labels": SLEEP_LABELS,
         "categories": CATEGORY_LABELS,
     }
 
@@ -133,10 +135,14 @@ async def predict_batch(req: BatchPredictRequest):
     shap_weights = get_shap_weights(req.model_source)
     teamq = compute_teamq(req.slider_values, shap_weights, _features_config) if shap_weights else 0.0
 
+    shap_weights_unprod = get_shap_weights_unprod(req.model_source)
+    teamp = compute_teamq(req.slider_values, shap_weights_unprod, _features_config) if shap_weights_unprod else 0.0
+
     return BatchPredictResponse(
         avg_mhq=float(mhq_preds.mean()),
         avg_unproductive_days=float(unprod_preds.mean()),
         teamq=teamq,
+        teamp=teamp,
         individual_mhq=mhq_preds.tolist(),
         individual_unproductive_days=unprod_preds.tolist(),
     )
@@ -162,6 +168,9 @@ async def upload_csv(file: UploadFile = File(...), model_source: str = "models_w
     # Use rounded team_averages (same values the sliders start at) so baseline matches initial prediction
     baseline_teamq = compute_teamq(team_averages, shap_weights, _features_config) if shap_weights else 0.0
 
+    shap_weights_unprod = get_shap_weights_unprod(model_source)
+    baseline_teamp = compute_teamq(team_averages, shap_weights_unprod, _features_config) if shap_weights_unprod else 0.0
+
     return UploadResponse(
         team_data=df.values.tolist(),
         feature_names=feature_names,
@@ -171,6 +180,7 @@ async def upload_csv(file: UploadFile = File(...), model_source: str = "models_w
         baseline_mhq=float(mhq_base.mean()),
         baseline_unproductive_days=float(unprod_base.mean()),
         baseline_teamq=baseline_teamq,
+        baseline_teamp=baseline_teamp,
         baseline_individual_mhq=mhq_base.tolist(),
         baseline_individual_unproductive_days=unprod_base.tolist(),
     )

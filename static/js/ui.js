@@ -86,54 +86,45 @@ export function renderHelpText() {
 export function renderTeamUpload() {
     const uploadArea = el('team-upload-area');
     const loadedInfo = el('team-loaded-info');
+    const scoresRow = el('team-scores-row');
 
     if (state.teamData !== null) {
         uploadArea.classList.add('hidden');
         loadedInfo.classList.remove('hidden');
         el('team-loaded-text').textContent = `Team data loaded — ${state.teamData.length} complete responses`;
+        const hasBaseline = state.teamBaseline !== null;
+        scoresRow.classList.toggle('hidden', !hasBaseline);
         renderTeamQ();
+        renderTeamP();
     } else {
         uploadArea.classList.remove('hidden');
         loadedInfo.classList.add('hidden');
+        scoresRow.classList.add('hidden');
     }
 }
 
 let _teamqInfoWired = false;
+let _teampInfoWired = false;
 
 function renderTeamQ() {
-    const container = el('teamq-display');
-    if (!container) return;
-
     const baseTeamq = state.teamBaseline?.teamq;
-    if (baseTeamq == null) {
-        container.classList.add('hidden');
-        return;
-    }
-
-    container.classList.remove('hidden');
+    if (baseTeamq == null) return;
 
     const curTeamq = state.teamPrediction?.teamq ?? baseTeamq;
     const dTeamq = curTeamq - baseTeamq;
     const changed = Math.abs(dTeamq) >= 0.05;
 
-    // Score text
-    el('teamq-score').textContent = `${fmt1(curTeamq)} / 100`;
+    el('teamq-value').textContent = fmt1(curTeamq);
 
-    // Delta text
-    const deltaEl = el('teamq-delta');
+    const pctEl = el('teamq-pct');
     if (changed) {
-        deltaEl.textContent = `(${sign(dTeamq)}${fmt1(dTeamq)})`;
-        deltaEl.className = `teamq-delta ${dTeamq > 0 ? 'positive' : 'negative'}`;
+        pctEl.textContent = `${sign(dTeamq)}${fmt1(dTeamq)} vs baseline`;
+        pctEl.className = `text-xl font-medium ${dTeamq > 0 ? 'text-purple-200' : 'text-red-200'}`;
     } else {
-        deltaEl.textContent = '';
-        deltaEl.className = 'teamq-delta neutral';
+        pctEl.textContent = 'vs baseline';
+        pctEl.className = 'text-xl font-medium opacity-60';
     }
 
-    // Progress bar fill
-    const pct = Math.max(0, Math.min(100, curTeamq));
-    el('teamq-bar-fill').style.width = `${pct}%`;
-
-    // Wire info button once
     if (!_teamqInfoWired) {
         _teamqInfoWired = true;
         const infoBtn = el('teamq-info-btn');
@@ -143,9 +134,40 @@ function renderTeamQ() {
                 e.stopPropagation();
                 tooltip.classList.toggle('hidden');
             });
-            document.addEventListener('click', () => {
-                tooltip.classList.add('hidden');
+            document.addEventListener('click', () => tooltip.classList.add('hidden'));
+        }
+    }
+}
+
+function renderTeamP() {
+    const baseTeamp = state.teamBaseline?.teamp;
+    if (baseTeamp == null) return;
+
+    const curTeamp = state.teamPrediction?.teamp ?? baseTeamp;
+    const dTeamp = curTeamp - baseTeamp;
+    const changed = Math.abs(dTeamp) >= 0.05;
+
+    el('teamp-value').textContent = fmt1(curTeamp);
+
+    const pctEl = el('teamp-pct');
+    if (changed) {
+        pctEl.textContent = `${sign(dTeamp)}${fmt1(dTeamp)} vs baseline`;
+        pctEl.className = `text-xl font-medium ${dTeamp > 0 ? 'text-teal-200' : 'text-red-200'}`;
+    } else {
+        pctEl.textContent = 'vs baseline';
+        pctEl.className = 'text-xl font-medium opacity-60';
+    }
+
+    if (!_teampInfoWired) {
+        _teampInfoWired = true;
+        const infoBtn = el('teamp-info-btn');
+        const tooltip = el('teamp-tooltip');
+        if (infoBtn && tooltip) {
+            infoBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                tooltip.classList.toggle('hidden');
             });
+            document.addEventListener('click', () => tooltip.classList.add('hidden'));
         }
     }
 }
@@ -252,11 +274,15 @@ function renderSliderGroup(category, container, onSliderChange) {
         const group = document.createElement('div');
         group.className = `slider-group ${isHighlighted ? 'highlighted' : ''}`;
 
-        if (cfg.name === 'exercise_freq_ord' || cfg.name === 'UPF_freq_ord') {
-            const labels = cfg.name === 'exercise_freq_ord' ? state.exerciseLabels : state.upfLabels;
+        if (cfg.name === 'exercise_freq_ord' || cfg.name === 'UPF_freq_ord' || cfg.name === 'sleep_freq_ord') {
+            const labels = cfg.name === 'exercise_freq_ord' ? state.exerciseLabels
+                : cfg.name === 'UPF_freq_ord' ? state.upfLabels
+                : state.sleepLabels;
             const captionText = cfg.name === 'exercise_freq_ord'
                 ? (rawAvg != null ? `Baseline avg: ${rawAvg.toFixed(1)} · Higher = more frequent exercise` : 'Higher = more frequent exercise')
-                : (rawAvg != null ? `Baseline avg: ${rawAvg.toFixed(1)} · Higher = healthier (less UPF)` : 'Higher = healthier (less UPF)');
+                : cfg.name === 'UPF_freq_ord'
+                ? (rawAvg != null ? `Baseline avg: ${rawAvg.toFixed(1)} · Higher = healthier (less UPF)` : 'Higher = healthier (less UPF)')
+                : (rawAvg != null ? `Baseline avg: ${rawAvg.toFixed(1)} · Higher = better sleep` : 'Higher = better sleep');
 
             group.className += ' select-slider';
             group.innerHTML = `
@@ -356,21 +382,35 @@ export function renderSensitivityResult() {
 
     const features = state.sensitivityResult.features;
     const isTeam = state.mode === 'team';
-    const prefix = isTeam ? 'Avg. ' : '';
+    const metric = state.sensitivityMetric || 'mhq';
+
+    const subtitleText = metric === 'mhq'
+        ? 'Factors ranked by MHQ improvement per unit increase from current position.'
+        : 'Factors ranked by productive days gained per unit increase from current position.';
+
+    // Sort by selected metric
+    const sorted = [...features].sort((a, b) => {
+        if (metric === 'mhq') return b.slope_mhq - a.slope_mhq;
+        return a.slope_unprod - b.slope_unprod; // lower unprod = better, so ascending slope_unprod
+    });
 
     let html = `<div class="sens-result">
         <div class="sens-header">
             <span class="sens-title">Factor Sensitivity — Sequential Priority</span>
+            <div class="sens-toggle">
+                <button class="sens-toggle-btn ${metric === 'mhq' ? 'active' : ''}" data-metric="mhq">MHQ</button>
+                <button class="sens-toggle-btn ${metric === 'unprod' ? 'active' : ''}" data-metric="unprod">Productive Days</button>
+            </div>
             <button id="sens-close" class="sens-close">&times;</button>
         </div>
-        <p class="sens-subtitle">Factors ranked by MHQ improvement per unit increase from current position.</p>
+        <p class="sens-subtitle">${subtitleText}</p>
         <div class="sens-list">`;
 
-    features.forEach((f, i) => {
+    sorted.forEach((f, i) => {
         const cfg = state.featuresConfig.find(c => c.name === f.name);
         const label = cfg ? cfg.label : f.name;
         const cat = cfg ? cfg.category : '';
-        const sparkSvg = buildSparkline(f.curve, f.current, cfg);
+        const sparkSvg = buildSparkline(f.curve, f.current, cfg, metric);
         const slopeMhq = f.slope_mhq;
         const totalMhq = f.total_delta_mhq;
         const totalUnprod = f.total_delta_unprod;
@@ -378,6 +418,10 @@ export function renderSensitivityResult() {
         const totalClass = totalMhq > 0 ? 'positive' : totalMhq < 0 ? 'negative' : '';
         const prodDelta = -totalUnprod;
         const prodClass = prodDelta > 0 ? 'positive' : prodDelta < 0 ? 'negative' : '';
+
+        const primarySlope = metric === 'mhq'
+            ? `<div class="sens-slope ${slopeClass}">${sign(slopeMhq)}${fmt1(slopeMhq)} <span class="sens-unit">MHQ/unit</span></div>`
+            : `<div class="sens-slope ${prodClass}">${sign(prodDelta)}${fmt1(prodDelta)} <span class="sens-unit">days total</span></div>`;
 
         html += `
         <div class="sens-row">
@@ -388,7 +432,7 @@ export function renderSensitivityResult() {
             </div>
             <div class="sens-sparkline">${sparkSvg}</div>
             <div class="sens-metrics">
-                <div class="sens-slope ${slopeClass}">${sign(slopeMhq)}${fmt1(slopeMhq)} <span class="sens-unit">MHQ/unit</span></div>
+                ${primarySlope}
                 <div class="sens-total">Total: <span class="${totalClass}">${sign(totalMhq)}${fmt1(totalMhq)} MHQ</span> · <span class="${prodClass}">${sign(prodDelta)}${fmt1(prodDelta)} days</span></div>
             </div>
         </div>`;
@@ -403,19 +447,32 @@ export function renderSensitivityResult() {
         state.sensitivityResult = null;
         renderSensitivityResult();
     });
+
+    // Wire metric toggle buttons
+    container.querySelectorAll('.sens-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.sensitivityMetric = btn.dataset.metric;
+            renderSensitivityResult();
+        });
+    });
 }
 
 function categoryLabel(cat) {
     return state.categories[cat] || cat;
 }
 
-function buildSparkline(curve, current, cfg) {
+function buildSparkline(curve, current, cfg, metric = 'mhq') {
     const W = 140, H = 36;
     const padding = 8;
-    const mhqVals = curve.map(p => p.mhq);
-    const minMhq = Math.min(...mhqVals);
-    const maxMhq = Math.max(...mhqVals);
-    const range = maxMhq - minMhq || 1;
+    const yKey = metric === 'unprod' ? 'unprod' : 'mhq';
+    // For unprod, lower is better — invert so the curve reads "up = good"
+    const invert = metric === 'unprod';
+    const strokeColor = metric === 'unprod' ? '#10b981' : '#6366f1';
+
+    const yVals = curve.map(p => p[yKey]);
+    const minY = Math.min(...yVals);
+    const maxY = Math.max(...yVals);
+    const yRange = maxY - minY || 1;
 
     const xVals = curve.map(p => p.value);
     const xMin = Math.min(...xVals);
@@ -424,17 +481,23 @@ function buildSparkline(curve, current, cfg) {
 
     const points = curve.map(p => {
         const x = padding + ((p.value - xMin) / xRange) * (W - 2 * padding);
-        const y = (H - padding) - ((p.mhq - minMhq) / range) * (H - 2 * padding);
+        const norm = (p[yKey] - minY) / yRange;
+        const y = invert
+            ? padding + norm * (H - 2 * padding)            // high unprod → top (bad)
+            : (H - padding) - norm * (H - 2 * padding);    // high mhq → top (good)
         return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
 
     // Current position marker
     const cx = padding + ((current - xMin) / xRange) * (W - 2 * padding);
     const curPoint = curve.reduce((best, p) => Math.abs(p.value - current) < Math.abs(best.value - current) ? p : best, curve[0]);
-    const cy = (H - padding) - ((curPoint.mhq - minMhq) / range) * (H - 2 * padding);
+    const normCur = (curPoint[yKey] - minY) / yRange;
+    const cy = invert
+        ? padding + normCur * (H - 2 * padding)
+        : (H - padding) - normCur * (H - 2 * padding);
 
     return `<svg width="${W}" height="${H}" class="sens-spark-svg" style="overflow:visible">
-        <polyline points="${points}" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-linejoin="round"/>
+        <polyline points="${points}" fill="none" stroke="${strokeColor}" stroke-width="1.5" stroke-linejoin="round"/>
         <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" fill="#f87171" stroke="#fff" stroke-width="1.5"/>
     </svg>`;
 }
